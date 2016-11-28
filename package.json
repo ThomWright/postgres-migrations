@@ -1,0 +1,46 @@
+{
+  "name": "postgres-migrations",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Stack Overflow style database migrations for PostgreSQL",
+  "main": "src/index.js",
+  "author": "Momentum Financial Technology Ltd",
+  "keywords": [
+    "postgres",
+    "postgresql",
+    "migration",
+    "migrations",
+    "sql",
+    "database",
+    "db"
+  ],
+  "homepage": "https://github.com/momentumft/postgres-migrations#readme",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:momentumft/postgres-migrations.git"
+  },
+  "bugs": {
+    "url": "https://github.com/momentumft/postgres-migrations/issues"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "test-unit": "ava",
+    "test": "npm run lint && npm run test-unit",
+    "preversion": "npm test",
+    "prepush": "npm test"
+  },
+  "dependencies": {
+    "bluebird": "^3.4.6",
+    "dedent-js": "^1.0.1",
+    "pg": "^6.1.0",
+    "pgtools": "^0.2.2",
+    "sql-template-strings": "^2.2.2"
+  },
+  "devDependencies": {
+    "@mft/eslint-config-momentumft": "^2.1.0",
+    "ava": "^0.17.0",
+    "eslint": "^3.9.1",
+    "husky": "^0.11.9"
+  }
+}
