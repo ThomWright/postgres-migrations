@@ -31,9 +31,10 @@ function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-di
   return client.connectAsync()
     .then(() => log("Connected to database"))
     .then(() => loadMigrationFiles(migrationsDirectory, log))
-    .then(filterMigrations(client, log))
+    .then(filterMigrations(client))
     .then(runMigrations(client, log))
     .then(() => client.end())
+    .then(() => log("Successfully applied all migrations"))
     .catch((err) => {
       log(`Migration failed. Reason: ${err.message}`)
       throw err
@@ -41,7 +42,7 @@ function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-di
 }
 
 // Work out which migrations to apply
-function filterMigrations(client, log) {
+function filterMigrations(client) {
   return (migrations) => {
     // Arrange in ID order
     const orderedMigrations = migrations.sort((a, b) => a.id - b.id)
@@ -58,7 +59,6 @@ function filterMigrations(client, log) {
         if (!exists) {
           // Migrations table hasn't been created,
           // so the database is new and we need to run all migrations
-          log("Running all migrations")
           return orderedMigrations
         }
 
@@ -92,6 +92,7 @@ function filterUnappliedMigrations(orderedMigrations) {
 // - add to migration table
 function runMigrations(client, log) {
   return (migrationsToRun) => bluebird.each(migrationsToRun, (migration) => {
+    log(`Starting migration: ${migration.name}`)
     return client.queryAsync("START TRANSACTION")
       .then(() => client.queryAsync(migration.sql))
       .then(() => {
@@ -101,6 +102,7 @@ function runMigrations(client, log) {
         `)
       })
       .then(() => client.queryAsync("COMMIT"))
+      .then(() => log(`Finished migration: ${migration.name}`))
       .catch((err) => {
         log(`Caught error running migration '${migration.name}' - rolling back.`)
         return client.queryAsync("ROLLBACK")
