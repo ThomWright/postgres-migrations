@@ -1,6 +1,5 @@
 {
-  "name": "postgres-migrations",
-  "private": true,
+  "name": "@mft/postgres-migrations",
   "version": "1.0.0",
   "description": "Stack Overflow style database migrations for PostgreSQL",
   "main": "src/index.js",
