@@ -33,12 +33,25 @@ function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-di
     .then(() => loadMigrationFiles(migrationsDirectory, log))
     .then(filterMigrations(client))
     .then(runMigrations(client, log))
-    .then(() => client.end())
-    .then(() => log("Successfully applied all migrations"))
+    .then(finalise(client, log))
     .catch((err) => {
       log(`Migration failed. Reason: ${err.message}`)
       throw err
     })
+}
+
+function finalise(client, log) {
+  return (completedMigrations) => {
+    if (completedMigrations.length === 0) {
+      log("No migrations applied")
+    } else {
+      const names = completedMigrations.map((m) => m.name)
+      log(`Successfully applied migrations: ${names}`)
+    }
+
+    return client.endAsync()
+      .then(() => completedMigrations)
+  }
 }
 
 // Work out which migrations to apply
