@@ -44,6 +44,8 @@ function createDb(dbName, dbConfig = {}, config = {}) { // eslint-disable-line c
       if (err.name !== "duplicate_database") {
         log(err)
         throw new Error(`Error creating database. Caused by: '${err.name}: ${err.message}'`)
+      } else {
+        log(`'${dbName}' database already exists`)
       }
     }
   })
