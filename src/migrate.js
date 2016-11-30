@@ -136,13 +136,13 @@ function loadMigrationFiles(directory, log) {
 
 const readFile = bluebird.promisify(fs.readFile)
 function loadFile(filePath) {
-  const fileName = path.basename(filePath, ".sql")
+  const fileName = path.basename(filePath)
 
   const id = parseInt(fileName, 10)
   if (isNaN(id)) {
     return Promise.reject(new Error(dedent`
       Migration files should begin with an integer ID.
-      Offending file: '${path.basename(filePath)}'`))
+      Offending file: '${fileName}'`))
   }
 
   return readFile(filePath, "utf8")
