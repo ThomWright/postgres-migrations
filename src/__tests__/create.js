@@ -23,7 +23,7 @@ test("successful creation", () => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   })
 })
 
@@ -32,7 +32,7 @@ test("bad arguments - no database name", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }))
   .then((err) => {
     t.regex(err.message, /database name/)
@@ -51,7 +51,7 @@ test("bad arguments - incorrect user", (t) => {
     user: "nobody",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }))
   .then((err) => {
     t.regex(err.message, /nobody/)
@@ -63,7 +63,7 @@ test("bad arguments - incorrect password", (t) => {
     user: "postgres",
     password: "not_the_password",
     host: "localhost",
-    port: port,
+    port,
   }))
   .then((err) => {
     t.regex(err.message, /password/)
@@ -75,7 +75,7 @@ test("bad arguments - incorrect host", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "sillyhost",
-    port: port,
+    port,
   }))
   .then((err) => {
     t.regex(err.message, /sillyhost/)
@@ -99,7 +99,7 @@ test("already created", () => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   })
 
   return create()
@@ -112,7 +112,7 @@ test("database name included in config", () => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   })
 
   return create()
@@ -125,7 +125,7 @@ test("custom default database name", () => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   })
 
   return create()

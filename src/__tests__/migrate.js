@@ -28,7 +28,7 @@ test("successful first migration", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }
 
   return createDb(databaseName, dbConfig)
@@ -46,7 +46,7 @@ test("successful second migration", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }
 
   return createDb(databaseName, dbConfig)
@@ -71,7 +71,7 @@ test("bad arguments - no migrations directory argument", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }))
   .then((err) => {
     t.regex(err.message, /directory/)
@@ -84,7 +84,7 @@ test("bad arguments - incorrect user", (t) => {
     user: "nobody",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }, "some/path"))
   .then((err) => {
     t.regex(err.message, /nobody/)
@@ -97,7 +97,7 @@ test("bad arguments - incorrect password", (t) => {
     user: "postgres",
     password: "not_the_password",
     host: "localhost",
-    port: port,
+    port,
   }, "some/path"))
   .then((err) => {
     t.regex(err.message, /password/)
@@ -110,7 +110,7 @@ test("bad arguments - incorrect host", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "sillyhost",
-    port: port,
+    port,
   }, "some/path"))
   .then((err) => {
     t.regex(err.message, /sillyhost/)
@@ -136,7 +136,7 @@ test("no database", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }, "some/path"))
   .then((err) => {
     t.regex(err.message, /database "migration-test-no-database" does not exist/)
@@ -150,7 +150,7 @@ test("no migrations dir", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }
 
   const promise = createDb(databaseName, dbConfig)
@@ -171,7 +171,7 @@ test("empty migrations dir", () => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }
 
   return createDb(databaseName, dbConfig)
@@ -187,7 +187,7 @@ test("non-consecutive ordering", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }
 
   const promise = createDb(databaseName, dbConfig)
@@ -208,7 +208,7 @@ test("not starting from one", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }
 
   const promise = createDb(databaseName, dbConfig)
@@ -229,7 +229,7 @@ test("negative ID", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }
 
   const promise = createDb(databaseName, dbConfig)
@@ -250,7 +250,7 @@ test("no prefix", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }
 
   const promise = createDb(databaseName, dbConfig)
@@ -272,7 +272,7 @@ test("syntax error", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }
 
   const promise = createDb(databaseName, dbConfig)
@@ -293,7 +293,7 @@ test("hash check failure", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }
 
   const promise = createDb(databaseName, dbConfig)
@@ -314,7 +314,7 @@ test("rollback", (t) => {
     user: "postgres",
     password: PASSWORD,
     host: "localhost",
-    port: port,
+    port,
   }
 
   const promise = createDb(databaseName, dbConfig)
