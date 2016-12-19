@@ -1,6 +1,6 @@
 {
   "name": "@mft/postgres-migrations",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Stack Overflow style database migrations for PostgreSQL",
   "main": "src/index.js",
   "author": "Momentum Financial Technology Ltd",
