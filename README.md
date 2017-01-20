@@ -51,7 +51,6 @@ For example, imagine Developer A creates a migration file in a branch. The next 
 
 The production database sees the migrations applied out of order with respect to their creation time. Any new development database will run the migrations in a different order.
 
-
 **The `migrations` table**
 
 A `migrations` table is created as the first migration, before any user-supplied migrations. This keeps track of all the migrations which have already been run.
@@ -61,6 +60,10 @@ A `migrations` table is created as the first migration, before any user-supplied
 Previously run migration scripts shouldn't be modified, since we want the process to be repeated in the same way for every new environment.
 
 This is enforced by hashing the file contents of a migration script and storing this in `migrations` table. Before running a migration, the previously run scripts are hashed and checked against the database to ensure they haven't changed.
+
+**Each migration run in a transaction**
+
+Ensures each migration is atomic. Either it completes successfully, or it is rolled back and the process is aborted.
 
 **Abort on errors**
 
