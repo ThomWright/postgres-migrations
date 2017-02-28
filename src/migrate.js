@@ -6,6 +6,8 @@ const path = require("path")
 const SQL = require("sql-template-strings")
 const dedent = require("dedent-js")
 
+const runMigration = require("./run-migration")
+
 module.exports = migrate
 
 function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-disable-line complexity
@@ -28,11 +30,12 @@ function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-di
 
   log("Attempting database migration")
 
-  return client.connectAsync()
+  return bluebird.resolve()
+    .then(() => client.connectAsync())
     .then(() => log("Connected to database"))
     .then(() => loadMigrationFiles(migrationsDirectory, log))
     .then(filterMigrations(client))
-    .then(runMigrations(client, log))
+    .each(runMigration(client))
     .then(finalise(client, log))
     .catch((err) => {
       log(`Migration failed. Reason: ${err.message}`)
@@ -98,35 +101,6 @@ function filterUnappliedMigrations(orderedMigrations) {
       return false
     })
   }
-}
-
-// For each migration, inside a transaction:
-// - run migration
-// - add to migration table
-function runMigrations(client, log) {
-  return (migrationsToRun) => bluebird.each(migrationsToRun, (migration) => {
-    log(`Starting migration: ${migration.name}`)
-    return client.queryAsync("START TRANSACTION")
-      .then(() => client.queryAsync(migration.sql))
-      .then(() => {
-        return client.queryAsync(SQL`
-          INSERT INTO migrations (id, name, hash)
-            VALUES (${migration.id}, ${migration.name}, ${migration.hash})
-        `)
-      })
-      .then(() => client.queryAsync("COMMIT"))
-      .then(() => log(`Finished migration: ${migration.name}`))
-      .catch((err) => {
-        log(`Caught error running migration '${migration.name}' - rolling back.`)
-        return client.queryAsync("ROLLBACK")
-          .then(() => {
-            throw new Error(dedent`
-              An error occurred running '${migration.name}'. Rolled back this migration.
-              No further migrations were run.
-              Reason: ${err.message}`)
-          })
-      })
-  })
 }
 
 const readDir = bluebird.promisify(fs.readdir)

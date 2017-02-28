@@ -27,8 +27,9 @@
   },
   "scripts": {
     "lint": "eslint src",
-    "test-unit": "ava",
-    "test": "npm run lint && npm run test-unit",
+    "test-integration": "ava",
+    "test-unit": "ava src/**/__unit__/**/*.js",
+    "test": "npm run test-unit && npm run lint && npm run test-integration",
     "preversion": "npm test",
     "prepush": "npm test"
   },
@@ -43,6 +44,8 @@
     "@mft/eslint-config-momentumft": "^2.1.0",
     "ava": "^0.17.0",
     "eslint": "^3.9.1",
-    "husky": "^0.11.9"
+    "husky": "^0.11.9",
+    "sinon": "^1.17.0",
+    "sinon-bluebird": "^3.1.0"
   }
 }
