@@ -4,21 +4,18 @@ const {execSync} = require("child_process")
 const pg = require("pg")
 const SQL = require("sql-template-strings")
 
+const startPostgres = require("./_start-postgres")
+
 const createDb = require("../create")
 const migrate = require("../migrate")
 
 const CONTAINER_NAME = "pg-migrations-test-migrate"
-const PASSWORD = "mysecretpassword"
+const PASSWORD = startPostgres.PASSWORD
 
 let port
 
-test.before(() => {
-  execSync(`docker run --name ${CONTAINER_NAME} -e POSTGRES_PASSWORD=${PASSWORD} -d -P postgres:9.4-alpine`).toString()
-
-  const portMapping = execSync(`docker port ${CONTAINER_NAME} 5432`).toString()
-  port = parseInt(portMapping.split(":")[1], 10)
-
-  return bluebird.delay(5000) // give postgres time to start up (this should be improved)
+test.cb.before((t) => {
+  port = startPostgres(CONTAINER_NAME, t)
 })
 
 test("successful first migration", (t) => {
