@@ -65,6 +65,8 @@ This is enforced by hashing the file contents of a migration script and storing 
 
 Ensures each migration is atomic. Either it completes successfully, or it is rolled back and the process is aborted.
 
+An exception is made when `-- postgres-migrations disable-transaction` is included at the top of the migration file. This allows migrations such as `CREATE INDEX CONCURRENTLY` which cannot be run inside a transaction.
+
 **Abort on errors**
 
 If anything fails, the process is aborted by throwing an exception.
