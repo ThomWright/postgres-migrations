@@ -36,8 +36,8 @@
   "dependencies": {
     "bluebird": "^3.4.6",
     "dedent-js": "^1.0.1",
-    "pg": "^6.1.0",
-    "pgtools": "^0.2.2",
+    "pg": "^7.1.2",
+    "pgtools": "^0.3",
     "sql-template-strings": "^2.2.2"
   },
   "devDependencies": {

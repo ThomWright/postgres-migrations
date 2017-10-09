@@ -26,17 +26,17 @@ function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-di
 
   const log = config.logger || (() => {})
 
-  const client = bluebird.promisifyAll(new pg.Client(dbConfig))
+  const client = new pg.Client(dbConfig)
 
   client.on("error", (err) => {
-    console.error("pg client emitted an error", err)
+    log(`pg client emitted an error: ${err.message}`)
   })
 
   log("Attempting database migration")
 
   try {
     return bluebird.resolve()
-      .then(() => client.connectAsync())
+      .then(() => client.connect())
       .then(() => log("Connected to database"))
       .then(() => loadMigrationFiles(migrationsDirectory, log))
       .then(filterMigrations(client))
@@ -45,7 +45,7 @@ function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-di
       .catch((err) => {
         log(`Migration failed. Reason: ${err.message}`)
         try {
-          return client.endAsync()
+          return client.end()
             .then(() => {
               throw err
             })
@@ -70,7 +70,7 @@ function finalise(client, log) {
       log(`Successfully applied migrations: ${names}`)
     }
 
-    return client.endAsync()
+    return client.end()
       .then(() => completedMigrations)
   }
 }
@@ -96,7 +96,7 @@ function filterMigrations(client) {
           return orderedMigrations
         }
 
-        return client.queryAsync("SELECT * FROM migrations")
+        return client.query("SELECT * FROM migrations")
           .then(filterUnappliedMigrations(orderedMigrations))
       })
   }
@@ -167,7 +167,7 @@ function loadFile(filePath) {
 
 // Check whether table exists in postgres - http://stackoverflow.com/a/24089729
 function doesTableExist(client, tableName) {
-  return client.queryAsync(SQL`
+  return client.query(SQL`
       SELECT EXISTS (
         SELECT 1
         FROM   pg_catalog.pg_class c

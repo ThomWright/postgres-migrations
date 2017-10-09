@@ -1,5 +1,4 @@
 const test = require("ava")
-const bluebird = require("bluebird")
 const {execSync} = require("child_process")
 const pg = require("pg")
 const SQL = require("sql-template-strings")
@@ -342,10 +341,10 @@ test.after.always(() => {
 })
 
 function doesTableExist(dbConfig, tableName) {
-  const client = bluebird.promisifyAll(new pg.Client(dbConfig))
+  const client = new pg.Client(dbConfig)
   client.on("error", (err) => console.log("doesTableExist on error", err))
-  return client.connectAsync()
-    .then(() => client.queryAsync(SQL`
+  return client.connect()
+    .then(() => client.query(SQL`
         SELECT EXISTS (
           SELECT 1
           FROM   pg_catalog.pg_class c
@@ -356,7 +355,7 @@ function doesTableExist(dbConfig, tableName) {
     )
     .then((result) => {
       try {
-        return client.endAsync()
+        return client.end()
           .then(() => {
             return result.rows.length > 0 && result.rows[0].exists
           })

@@ -10,23 +10,23 @@ module.exports = client => migration => {
     .indexOf("-- postgres-migrations disable-transaction") === -1
 
   const begin = inTransaction
-    ? client.queryAsync.bind(client, "START TRANSACTION")
+    ? () => client.query("START TRANSACTION")
     : noop
 
   const end = inTransaction
-    ? client.queryAsync.bind(client, "COMMIT")
+    ? () => client.query("COMMIT")
     : noop
 
   const cleanup = inTransaction
-    ? client.queryAsync.bind(client, "ROLLBACK")
+    ? () => client.query("ROLLBACK")
     : noop
 
   return bluebird
     .resolve()
     .then(begin)
-    .then(() => client.queryAsync(migration.sql))
+    .then(() => client.query(migration.sql))
     .then(() => {
-      return client.queryAsync(
+      return client.query(
         SQL`
         INSERT INTO migrations (id, name, hash)
           VALUES (${migration.id}, ${migration.name}, ${migration.hash})
