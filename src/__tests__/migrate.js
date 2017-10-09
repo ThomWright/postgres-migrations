@@ -14,6 +14,10 @@ const PASSWORD = startPostgres.PASSWORD
 
 let port
 
+process.on("uncaughtException", function(err) {
+  console.log(err)
+})
+
 test.cb.before((t) => {
   port = startPostgres(CONTAINER_NAME, t)
 })
@@ -329,11 +333,17 @@ test("rollback", (t) => {
 })
 
 test.after.always(() => {
-  execSync(`docker rm -f ${CONTAINER_NAME}`)
+  try {
+    execSync(`docker rm -f ${CONTAINER_NAME}`)
+  } catch (error) {
+    console.log("Could not remove the Postgres container")
+    throw error
+  }
 })
 
 function doesTableExist(dbConfig, tableName) {
   const client = bluebird.promisifyAll(new pg.Client(dbConfig))
+  client.on("error", (err) => console.log("doesTableExist on error", err))
   return client.connectAsync()
     .then(() => client.queryAsync(SQL`
         SELECT EXISTS (
@@ -345,7 +355,18 @@ function doesTableExist(dbConfig, tableName) {
       `)
     )
     .then((result) => {
-      client.end()
-      return result.rows.length > 0 && result.rows[0].exists
+      try {
+        return client.endAsync()
+          .then(() => {
+            return result.rows.length > 0 && result.rows[0].exists
+          })
+          .catch((error) => {
+            console.log("Async error in 'doesTableExist", error)
+            return result.rows.length > 0 && result.rows[0].exists
+          })
+      } catch (error) {
+        console.log("Sync error in 'doesTableExist", error)
+        return result.rows.length > 0 && result.rows[0].exists
+      }
     })
 }

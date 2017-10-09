@@ -28,19 +28,37 @@ function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-di
 
   const client = bluebird.promisifyAll(new pg.Client(dbConfig))
 
+  client.on("error", (err) => {
+    console.error("pg client emitted an error", err)
+  })
+
   log("Attempting database migration")
 
-  return bluebird.resolve()
-    .then(() => client.connectAsync())
-    .then(() => log("Connected to database"))
-    .then(() => loadMigrationFiles(migrationsDirectory, log))
-    .then(filterMigrations(client))
-    .each(runMigration(client))
-    .then(finalise(client, log))
-    .catch((err) => {
-      log(`Migration failed. Reason: ${err.message}`)
-      throw err
-    })
+  try {
+    return bluebird.resolve()
+      .then(() => client.connectAsync())
+      .then(() => log("Connected to database"))
+      .then(() => loadMigrationFiles(migrationsDirectory, log))
+      .then(filterMigrations(client))
+      .each(runMigration(client))
+      .then(finalise(client, log))
+      .catch((err) => {
+        log(`Migration failed. Reason: ${err.message}`)
+        try {
+          return client.endAsync()
+            .then(() => {
+              throw err
+            })
+            .catch(() => {
+              throw err
+            })
+        } catch (e) {
+          return Promise.reject(err)
+        }
+      })
+  } catch (e) {
+    return Promise.reject(e)
+  }
 }
 
 function finalise(client, log) {
