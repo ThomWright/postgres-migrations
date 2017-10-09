@@ -1,9 +1,9 @@
 {
-  "name": "@mft/postgres-migrations",
-  "version": "1.1.0",
+  "name": "postgres-migrations",
+  "version": "1.0.0",
   "description": "Stack Overflow style database migrations for PostgreSQL",
   "main": "src/index.js",
-  "author": "Momentum Financial Technology Ltd",
+  "author": "Thom Wright",
   "keywords": [
     "postgres",
     "postgresql",
@@ -13,14 +13,14 @@
     "database",
     "db"
   ],
-  "homepage": "https://github.com/momentumft/postgres-migrations#readme",
+  "homepage": "https://github.com/thomwright/postgres-migrations#readme",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git@github.com:momentumft/postgres-migrations.git"
+    "url": "git@github.com:thomwright/postgres-migrations.git"
   },
   "bugs": {
-    "url": "https://github.com/momentumft/postgres-migrations/issues"
+    "url": "https://github.com/thomwright/postgres-migrations/issues"
   },
   "engines": {
     "node": "^6.0.0"
