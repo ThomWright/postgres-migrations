@@ -23,7 +23,7 @@
     "url": "https://github.com/thomwright/postgres-migrations/issues"
   },
   "engines": {
-    "node": "^6.0.0"
+    "node": ">6.0.0"
   },
   "scripts": {
     "lint": "eslint src",
