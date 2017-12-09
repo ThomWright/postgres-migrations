@@ -6,7 +6,7 @@ module.exports = filePath => {
   if (!mutationModule.generateSql) {
     throw new Error(dedent`
           Invalid javascript mutation file: '${path.basename(filePath)}'.
-          It need to export a 'generateSql' function.`)
+          It must to export a 'generateSql' function.`)
   }
   const generatedValue = mutationModule.generateSql()
   if (typeof generatedValue !== "string") {
