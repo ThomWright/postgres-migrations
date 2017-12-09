@@ -5,7 +5,7 @@ require("sinon-bluebird")
 const bluebird = require("bluebird")
 
 const runMigration = require("../../run-migration")
-const loadSqlFromJs = require("../../load-js-from-js")
+const loadSqlFromJs = require("../../load-sql-from-js")
 
 const readFile = bluebird.promisify(require("fs").readFile)
 

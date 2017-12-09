@@ -7,7 +7,7 @@ const SQL = require("sql-template-strings")
 const dedent = require("dedent-js")
 
 const runMigration = require("./run-migration")
-const loadSqlFromJs = require("./load-js-from-js")
+const loadSqlFromJs = require("./load-sql-from-js")
 
 module.exports = migrate
 
