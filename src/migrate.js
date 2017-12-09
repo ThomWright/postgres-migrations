@@ -114,7 +114,7 @@ function filterUnappliedMigrations(orderedMigrations) {
       if (migRecord.hash !== mig.hash) {
         // Someone has altered a migration which has already run - gasp!
         throw new Error(dedent`
-          Hashes don't match for migration '${mig.name}'.
+          Hashes don't match for migration file '${mig.fileName}'.
           This means that the script has changed since it was applied.`)
       }
       return false
@@ -182,6 +182,7 @@ function loadFile(filePath) {
         id,
         name,
         type,
+        fileName,
         sql: contents,
         file: filePath,
         hash: encodedHash,
