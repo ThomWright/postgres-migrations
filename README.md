@@ -86,12 +86,15 @@ They must be consecutive, e.g. if you have migrations 1-4, the next one must be 
 
 Migration IDs must start from 1.
 
+File name pattern: `[:id]{_ or -}[:name].{sql or js}`
+
 Example:
 
 ```
 migrations
 ├ 1_create-initial-tables.sql
-└ 2_alter-initial-tables.sql
+├ 2-alter-initial-tables.sql
+└ 3_alter-initial-tables-again.js
 ```
 
 Or, if you want better ordering in your filesystem:
@@ -99,7 +102,8 @@ Or, if you want better ordering in your filesystem:
 ```
 migrations
 ├ 00001_create-initial-tables.sql
-└ 00002_alter-initial-tables.sql
+├ 00002-alter-initial-tables.sql
+└ 00003_alter-initial-tables-again.js
 ```
 
 Note that file names cannot be changed later.

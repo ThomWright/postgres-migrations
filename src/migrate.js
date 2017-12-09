@@ -7,6 +7,7 @@ const SQL = require("sql-template-strings")
 const dedent = require("dedent-js")
 
 const runMigration = require("./run-migration")
+const loadSqlFromJs = require("./load-js-from-js")
 
 module.exports = migrate
 
@@ -121,6 +122,9 @@ function filterUnappliedMigrations(orderedMigrations) {
   }
 }
 
+const isFile = (type) => (fileName) => fileName.endsWith(type)
+const isSqlFile = isFile(".sql")
+const isJsFile = isFile(".js")
 const readDir = bluebird.promisify(fs.readdir)
 function loadMigrationFiles(directory, log) {
   log(`Loading migrations from: ${directory}`)
@@ -128,7 +132,8 @@ function loadMigrationFiles(directory, log) {
     .then((fileNames) => {
       log(`Found migration files: ${fileNames}`)
       return fileNames
-        .filter((fileName) => fileName.toLowerCase().endsWith(".sql"))
+        .map((fileName) => fileName.toLowerCase())
+        .filter((fileName) => isSqlFile(fileName) || isJsFile(fileName))
         .map((fileName) => path.resolve(directory, fileName))
     })
     .then((fileNames) => {
@@ -140,10 +145,27 @@ function loadMigrationFiles(directory, log) {
 }
 
 const readFile = bluebird.promisify(fs.readFile)
+const fileNameParser = (fileName) => {
+  const [_, id, __, name, type] = /^(([^_-]|-\d)+)[_-](.*).(sql|js)/g.exec(fileName) // eslint-disable-line
+
+  return {
+    id: parseInt(id, 10),
+    name,
+    type,
+  }
+}
+
+function checkLoadJs(mutationDefinition) {
+  if (mutationDefinition.type === "js") {
+    mutationDefinition.sql = loadSqlFromJs(mutationDefinition.file)
+  }
+  return mutationDefinition
+}
+
 function loadFile(filePath) {
   const fileName = path.basename(filePath)
 
-  const id = parseInt(fileName, 10)
+  const {id, name, type} = fileNameParser(fileName)
   if (isNaN(id)) {
     return Promise.reject(new Error(dedent`
       Migration files should begin with an integer ID.
@@ -158,11 +180,14 @@ function loadFile(filePath) {
 
       return {
         id,
-        name: fileName,
+        name,
+        type,
         sql: contents,
+        file: filePath,
         hash: encodedHash,
       }
     })
+    .then(checkLoadJs)
 }
 
 // Check whether table exists in postgres - http://stackoverflow.com/a/24089729

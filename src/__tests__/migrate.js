@@ -58,6 +58,43 @@ test("successful second migration", (t) => {
     })
 })
 
+test("successful first javascript migration", (t) => {
+  const databaseName = "migration-test-success-js-first"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  return createDb(databaseName, dbConfig)
+    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-js-first"))
+    .then(() => doesTableExist(dbConfig, "success"))
+    .then((exists) => {
+      t.truthy(exists)
+    })
+})
+
+test("successful second mixed js and sql migration", (t) => {
+  const databaseName = "migration-test-success-second-mixed-js-sql"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  return createDb(databaseName, dbConfig)
+    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-js-first"))
+    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-second-mixed-js-sql"))
+    .then(() => doesTableExist(dbConfig, "more_success"))
+    .then((exists) => {
+      t.truthy(exists)
+    })
+})
+
 test("bad arguments - no db config", (t) => {
   return t.throws(migrate())
     .then((err) => {
@@ -303,7 +340,7 @@ test("hash check failure", (t) => {
   return t.throws(promise)
     .then((err) => {
       t.regex(err.message, /Hashes don't match/)
-      t.regex(err.message, /1_migration/, "Should name the problem file")
+      t.regex(err.message, /migration/, "Should name the problem file")
     })
 })
 
@@ -323,7 +360,7 @@ test("rollback", (t) => {
   return t.throws(promise)
     .then((err) => {
       t.regex(err.message, /Rolled back/)
-      t.regex(err.message, /1_trigger-rollback/)
+      t.regex(err.message, /trigger-rollback/)
     })
     .then(() => doesTableExist(dbConfig, "should_get_rolled_back"))
     .then((exists) => {
