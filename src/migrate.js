@@ -143,7 +143,7 @@ function loadMigrationFiles(directory, log) {
 
 const readFile = bluebird.promisify(fs.readFile)
 const fileNameParser = (fileName) => {
-  const [_, id, __, name, type] = /^(([^_-]|-\d)+)[_-](.*).(sql|js)/g.exec(fileName) // eslint-disable-line
+  const [_, id, __, name, type] = /^(([^_-]|-\d)+)[_-](.*).(sql|js)/gi.exec(fileName) // eslint-disable-line
 
   return {
     id: parseInt(id, 10),
