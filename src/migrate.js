@@ -144,11 +144,11 @@ function loadMigrationFiles(directory, log) {
 
 const readFile = bluebird.promisify(fs.readFile)
 
-function checkLoadJs(mutationDefinition) {
-  if (mutationDefinition.type === "js") {
-    mutationDefinition.sql = dedent(loadSqlFromJs(mutationDefinition.file))
+function checkLoadJs(migrationDefinition) {
+  if (migrationDefinition.type === "js") {
+    migrationDefinition.sql = dedent(loadSqlFromJs(migrationDefinition.file))
   }
-  return mutationDefinition
+  return migrationDefinition
 }
 
 function loadFile(filePath) {
