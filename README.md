@@ -131,19 +131,19 @@ For an example, see [this blog post](http://www.brunton-spall.co.uk/post/2014/05
 By using `.js` extension on your migration file you gain access to all NodeJS features and only need to export a method called `generateSql` that returns a `string` literal like:
 
 ```js
-// create-main-table.js
+// ./migrations/helpers/create-main-table.js
 module.exports = `
 CREATE TABLE main (
     id int primary key
 );`
 
-// create-secondary-table.js
+// ./migrations/helpers/create-secondary-table.js
 module.exports = `
 CREATE TABLE secondary (
     id int primary key
 );`
 
-// 1-init.js
+// ./migrations/1-init.js
 const createMainTable = require('./create-main-table')
 const createSecondaryTable = require('./create-secondary-table')
 
