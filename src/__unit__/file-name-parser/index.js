@@ -105,3 +105,10 @@ test("parse name: 0001_file.sql", t => {
     "should parse correctly with left zeros"
   )
 })
+
+test("parse name: not_file.sql", t => {
+  const err = t.throws(() => fileNameParser("not_file.sql"))
+
+  t.regex(err.message, /Invalid file name/)
+  t.regex(err.message, /not_file/, "Should name the problem file")
+})
