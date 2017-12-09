@@ -3,7 +3,7 @@ const {execSync} = require("child_process")
 const pg = require("pg")
 const SQL = require("sql-template-strings")
 
-const startPostgres = require("./_start-postgres")
+const startPostgres = require("./fixtures/start-postgres")
 
 const createDb = require("../create")
 const migrate = require("../migrate")
@@ -32,7 +32,7 @@ test("successful first migration", (t) => {
   }
 
   return createDb(databaseName, dbConfig)
-    .then(() => migrate(dbConfig, "src/__tests__/success-first"))
+    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-first"))
     .then(() => doesTableExist(dbConfig, "success"))
     .then((exists) => {
       t.truthy(exists)
@@ -50,8 +50,8 @@ test("successful second migration", (t) => {
   }
 
   return createDb(databaseName, dbConfig)
-    .then(() => migrate(dbConfig, "src/__tests__/success-first"))
-    .then(() => migrate(dbConfig, "src/__tests__/success-second"))
+    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-first"))
+    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-second"))
     .then(() => doesTableExist(dbConfig, "more_success"))
     .then((exists) => {
       t.truthy(exists)
@@ -213,7 +213,7 @@ test("empty migrations dir", () => {
 
   return createDb(databaseName, dbConfig)
     .then(() => {
-      return migrate(dbConfig, "src/__tests__/empty")
+      return migrate(dbConfig, "src/__tests__/fixtures/empty")
     })
 })
 
@@ -229,7 +229,7 @@ test("non-consecutive ordering", (t) => {
 
   const promise = createDb(databaseName, dbConfig)
     .then(() => {
-      return migrate(dbConfig, "src/__tests__/non-consecutive")
+      return migrate(dbConfig, "src/__tests__/fixtures/non-consecutive")
     })
 
   return t.throws(promise)
@@ -250,7 +250,7 @@ test("not starting from one", (t) => {
 
   const promise = createDb(databaseName, dbConfig)
     .then(() => {
-      return migrate(dbConfig, "src/__tests__/start-from-2")
+      return migrate(dbConfig, "src/__tests__/fixtures/start-from-2")
     })
 
   return t.throws(promise)
@@ -271,7 +271,7 @@ test("negative ID", (t) => {
 
   const promise = createDb(databaseName, dbConfig)
     .then(() => {
-      return migrate(dbConfig, "src/__tests__/negative")
+      return migrate(dbConfig, "src/__tests__/fixtures/negative")
     })
 
   return t.throws(promise)
@@ -292,7 +292,7 @@ test("no prefix", (t) => {
 
   const promise = createDb(databaseName, dbConfig)
     .then(() => {
-      return migrate(dbConfig, "src/__tests__/no-prefix")
+      return migrate(dbConfig, "src/__tests__/fixtures/no-prefix")
     })
 
   return t.throws(promise)
@@ -314,7 +314,7 @@ test("syntax error", (t) => {
 
   const promise = createDb(databaseName, dbConfig)
     .then(() => {
-      return migrate(dbConfig, "src/__tests__/syntax-error")
+      return migrate(dbConfig, "src/__tests__/fixtures/syntax-error")
     })
 
   return t.throws(promise)
@@ -334,8 +334,8 @@ test("hash check failure", (t) => {
   }
 
   const promise = createDb(databaseName, dbConfig)
-    .then(() => migrate(dbConfig, "src/__tests__/hash-check/first-run"))
-    .then(() => migrate(dbConfig, "src/__tests__/hash-check/second-run"))
+    .then(() => migrate(dbConfig, "src/__tests__/fixtures/hash-check/first-run"))
+    .then(() => migrate(dbConfig, "src/__tests__/fixtures/hash-check/second-run"))
 
   return t.throws(promise)
     .then((err) => {
@@ -355,7 +355,7 @@ test("rollback", (t) => {
   }
 
   const promise = createDb(databaseName, dbConfig)
-    .then(() => migrate(dbConfig, "src/__tests__/rollback"))
+    .then(() => migrate(dbConfig, "src/__tests__/fixtures/rollback"))
 
   return t.throws(promise)
     .then((err) => {

@@ -15,11 +15,11 @@ let noTransactionSqlFile
 
 test.before(() => {
   return bluebird.all([
-    readFile(__dirname + "/normal.sql", "utf8").then(contents => {
+    readFile(__dirname + "/fixtures/normal.sql", "utf8").then(contents => {
       normalSqlFile = contents
     }),
 
-    readFile(__dirname + "/no-transaction.sql", "utf8").then(contents => {
+    readFile(__dirname + "/fixtures/no-transaction.sql", "utf8").then(contents => {
       noTransactionSqlFile = contents
     }),
 

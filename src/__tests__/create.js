@@ -1,7 +1,7 @@
 const test = require("ava")
 const {execSync} = require("child_process")
 
-const startPostgres = require("./_start-postgres")
+const startPostgres = require("./fixtures/start-postgres")
 
 const createDb = require("../create")
 
