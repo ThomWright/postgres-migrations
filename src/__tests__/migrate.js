@@ -95,6 +95,24 @@ test("successful second mixed js and sql migration", (t) => {
     })
 })
 
+test("successful complex js migration", (t) => {
+  const databaseName = "migration-test-success-complex-js"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  return createDb(databaseName, dbConfig)
+    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-complex-js"))
+    .then(() => doesTableExist(dbConfig, "complex"))
+    .then((exists) => {
+      t.truthy(exists)
+    })
+})
+
 test("bad arguments - no db config", (t) => {
   return t.throws(migrate())
     .then((err) => {
