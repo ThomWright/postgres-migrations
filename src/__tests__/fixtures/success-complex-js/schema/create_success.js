@@ -1,4 +1,5 @@
-module.exports = () => `CREATE TABLE success (
+module.exports = `
+CREATE TABLE success (
   id integer
 );
 `
