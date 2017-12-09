@@ -2,7 +2,8 @@
 
 [![Travis](https://img.shields.io/travis/ThomWright/postgres-migrations.svg)](https://travis-ci.org/ThomWright/postgres-migrations)
 [![npm](https://img.shields.io/npm/v/postgres-migrations.svg)](https://www.npmjs.com/package/postgres-migrations)
-[![David](https://img.shields.io/david/ThomWright/postgres-migrations.svg)](https://david-dm.org/ThomWright/postgres-migrations)
+[![Dav
+id](https://img.shields.io/david/ThomWright/postgres-migrations.svg)](https://david-dm.org/ThomWright/postgres-migrations)
 [![David](https://img.shields.io/david/dev/ThomWright/postgres-migrations.svg)](https://david-dm.org/ThomWright/postgres-migrations)
 
 A PostgreSQL migration library inspired by the Stack Overflow system described in [Nick Craver's blog](http://nickcraver.com/blog/2016/05/03/stack-overflow-how-we-do-deployment-2016-edition/#database-migrations).
@@ -78,36 +79,6 @@ If anything fails, the process is aborted by throwing an exception.
 
 ## Migration rules
 
-**Prefix all file names with a consecutive integer ID**
-
-Migrations will be performed in this order.
-
-They must be consecutive, e.g. if you have migrations 1-4, the next one must be 5.
-
-Migration IDs must start from 1.
-
-File name pattern: `[:id]{_ or -}[:name].{sql or js}`
-
-Example:
-
-```
-migrations
-├ 1_create-initial-tables.sql
-├ 2-alter-initial-tables.sql
-└ 3_alter-initial-tables-again.js
-```
-
-Or, if you want better ordering in your filesystem:
-
-```
-migrations
-├ 00001_create-initial-tables.sql
-├ 00002-alter-initial-tables.sql
-└ 00003_alter-initial-tables-again.js
-```
-
-Note that file names cannot be changed later.
-
 **Make migrations idempotent**
 
 Migrations should only be run once, but this is a good principle to follow regardless.
@@ -125,6 +96,40 @@ These hashes are checked when running migrations.
 Backwards incompatible changes can usually be made in a few stages.
 
 For an example, see [this blog post](http://www.brunton-spall.co.uk/post/2014/05/06/database-migrations-done-right/).
+
+### File name
+A migration file must match the following pattern:
+
+`[id][separator][name][extension]`
+
+| Section | Accepted Values | Description   |
+|   ---   |         ---     |       ---     |
+|   id    |   Any integer or left zero integers      |   Consecutive integer ID. <br />**Must start from 1 and be consecutive, e.g. if you have migrations 1-4, the next one must be 5.** |
+|   separator | `_` or `-` or nothing | |
+|   name    |   Any length text | |
+|   extension   |   `.sql` or `.js` | File extensions supported **not case sensitive** |
+
+Example:
+
+```
+migrations
+├ 1_create-initial-tables.sql
+├ 2-alter-initial-tables.SQL
+└ 3alter-initial-tables-again.js
+```
+
+Or, if you want better ordering in your filesystem:
+
+```
+migrations
+├ 00001_create-initial-tables.sql
+├ 00002-alter-initial-tables.sql
+└ 00003_alter-initial-tables-again.js
+```
+
+Migrations will be performed in the order of the ids.
+
+Note that file names cannot be changed later.
 
 ### Javascript Migrations
 
