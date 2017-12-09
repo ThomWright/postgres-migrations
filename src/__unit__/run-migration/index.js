@@ -5,10 +5,12 @@ require("sinon-bluebird")
 const bluebird = require("bluebird")
 
 const runMigration = require("../../run-migration")
+const loadSqlFromJs = require("../../load-js-from-js")
 
 const readFile = bluebird.promisify(require("fs").readFile)
 
 let normalSqlFile
+let normalJsFile
 let noTransactionSqlFile
 
 test.before(() => {
@@ -19,6 +21,10 @@ test.before(() => {
 
     readFile(__dirname + "/no-transaction.sql", "utf8").then(contents => {
       noTransactionSqlFile = contents
+    }),
+
+    bluebird.resolve().then(() => {
+      normalJsFile = loadSqlFromJs(__dirname + "/fixtures/normal.sql.js")
     }),
   ])
 })
@@ -37,6 +43,40 @@ test("runs a simple migration", t => {
   const run = runMigration({query})
 
   const migration = buildMigration(normalSqlFile)
+
+  return run(migration).then(() => {
+    t.is(query.callCount, 4)
+    t.is(
+      query.firstCall.args[0],
+      "START TRANSACTION",
+      "should begin a transaction"
+    )
+
+    t.is(
+      query.secondCall.args[0],
+      migration.sql,
+      "should execute the migration"
+    )
+
+    t.deepEqual(
+      query.thirdCall.args[0].values,
+      [migration.id, migration.name, migration.hash],
+      "should record the running of the migration in the database"
+    )
+
+    t.is(
+      query.lastCall.args[0],
+      "COMMIT",
+      "should complete the transaction"
+    )
+  })
+})
+
+test("runs a simple js migration", t => {
+  const query = sinon.stub().resolves()
+  const run = runMigration({query})
+
+  const migration = buildMigration(normalJsFile)
 
   return run(migration).then(() => {
     t.is(query.callCount, 4)
