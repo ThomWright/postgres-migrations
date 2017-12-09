@@ -126,6 +126,31 @@ Backwards incompatible changes can usually be made in a few stages.
 
 For an example, see [this blog post](http://www.brunton-spall.co.uk/post/2014/05/06/database-migrations-done-right/).
 
+### Javascript Migrations
+
+By using `.js` extension on your migration file you gain access to all NodeJS features and only need to export a method called `generateSql` that returns a `string` like:
+
+```js
+// create-main-table.js
+module.exports = `
+CREATE TABLE main (
+    id int primary key
+);`
+
+// create-secondary-table.js
+module.exports = `
+CREATE TABLE secondary (
+    id int primary key
+);`
+
+// 1-init.js
+const createMainTable = require('./create-main-table')
+const createSecondaryTable = require('./create-secondary-table')
+
+module.exports.generateSql = () => `${createMainTable}
+${createSecondaryTable}`
+```
+
 ## Tips
 
 If you want sane date handling, it is recommended you use the following code snippet to fix a `node-postgres` [bug](https://github.com/brianc/node-postgres/issues/818):
