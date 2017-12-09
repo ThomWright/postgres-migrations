@@ -157,7 +157,7 @@ const fileNameParser = (fileName) => {
 
 function checkLoadJs(mutationDefinition) {
   if (mutationDefinition.type === "js") {
-    mutationDefinition.sql = loadSqlFromJs(mutationDefinition.file)
+    mutationDefinition.sql = dedent(loadSqlFromJs(mutationDefinition.file))
   }
   return mutationDefinition
 }
