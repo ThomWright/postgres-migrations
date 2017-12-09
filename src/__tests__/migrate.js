@@ -341,6 +341,27 @@ test("syntax error", (t) => {
     })
 })
 
+test("bad javascript file - no generateSql method exported", (t) => {
+  const databaseName = "migration-test-javascript-file-errors"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  const promise = createDb(databaseName, dbConfig)
+    .then(() => {
+      return migrate(dbConfig, "src/__tests__/fixtures/js-no-generate-sql")
+    })
+
+  return t.throws(promise)
+    .then((err) => {
+      t.regex(err.message, /export a 'generateSql' function/)
+    })
+})
+
 test("hash check failure", (t) => {
   const databaseName = "migration-test-hash-check"
   const dbConfig = {
