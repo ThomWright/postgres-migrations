@@ -128,7 +128,7 @@ For an example, see [this blog post](http://www.brunton-spall.co.uk/post/2014/05
 
 ### Javascript Migrations
 
-By using `.js` extension on your migration file you gain access to all NodeJS features and only need to export a method called `generateSql` that returns a `string` like:
+By using `.js` extension on your migration file you gain access to all NodeJS features and only need to export a method called `generateSql` that returns a `string` literal like:
 
 ```js
 // create-main-table.js

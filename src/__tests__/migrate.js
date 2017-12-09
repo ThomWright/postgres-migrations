@@ -362,6 +362,27 @@ test("bad javascript file - no generateSql method exported", (t) => {
     })
 })
 
+test("bad javascript file - generateSql not returning string literal", (t) => {
+  const databaseName = "migration-test-javascript-no-literal"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  const promise = createDb(databaseName, dbConfig)
+    .then(() => {
+      return migrate(dbConfig, "src/__tests__/fixtures/js-no-string-literal")
+    })
+
+  return t.throws(promise)
+    .then((err) => {
+      t.regex(err.message, /string literal/)
+    })
+})
+
 test("hash check failure", (t) => {
   const databaseName = "migration-test-hash-check"
   const dbConfig = {
