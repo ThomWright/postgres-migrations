@@ -1,6 +1,4 @@
-const dedent = require("dedent-js")
-
-module.exports.generateSql = () => dedent`
+module.exports.generateSql = () => `
 -- pointless comment
 SELECT * from eggs
   WHERE color = 2
