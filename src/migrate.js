@@ -122,9 +122,7 @@ function filterUnappliedMigrations(orderedMigrations) {
   }
 }
 
-const isFile = (type) => (fileName) => fileName.endsWith(type)
-const isSqlFile = isFile(".sql")
-const isJsFile = isFile(".js")
+const isValidFile = fileName => /.(sql|js)$/gi.test(fileName)
 const readDir = bluebird.promisify(fs.readdir)
 function loadMigrationFiles(directory, log) {
   log(`Loading migrations from: ${directory}`)
@@ -132,8 +130,7 @@ function loadMigrationFiles(directory, log) {
     .then((fileNames) => {
       log(`Found migration files: ${fileNames}`)
       return fileNames
-        .map((fileName) => fileName.toLowerCase())
-        .filter((fileName) => isSqlFile(fileName) || isJsFile(fileName))
+        .filter((fileName) => isValidFile(fileName))
         .map((fileName) => path.resolve(directory, fileName))
     })
     .then((fileNames) => {
