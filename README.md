@@ -7,7 +7,7 @@
 
 A PostgreSQL migration library inspired by the Stack Overflow system described in [Nick Craver's blog](http://nickcraver.com/blog/2016/05/03/stack-overflow-how-we-do-deployment-2016-edition/#database-migrations).
 
-Requires Node 6+
+Requires Node 8.9.3+
 
 Supports PostgreSQL 9.4+
 
