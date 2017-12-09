@@ -1,6 +1,4 @@
-const dedent = require("dedent-js")
-
-module.exports.generateSql = () => dedent`
+module.exports.generateSql = () => `
 CREATE TABLE success (
   id integer
 );
