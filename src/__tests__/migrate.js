@@ -398,9 +398,9 @@ test("hash check failure", (t) => {
     .then(() => migrate(dbConfig, "src/__tests__/fixtures/hash-check/second-run"))
 
   return t.throws(promise)
-    .then((err) => {
+    .then((err) => {g
       t.regex(err.message, /Hashes don't match/)
-      t.regex(err.message, /migration/, "Should name the problem file")
+      t.regex(err.message, /1_migration/, "Should name the problem file")
     })
 })
 
