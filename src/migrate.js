@@ -8,6 +8,7 @@ const dedent = require("dedent-js")
 
 const runMigration = require("./run-migration")
 const loadSqlFromJs = require("./load-sql-from-js")
+const fileNameParser = require("./file-name-parser")
 
 module.exports = migrate
 
@@ -142,15 +143,6 @@ function loadMigrationFiles(directory, log) {
 }
 
 const readFile = bluebird.promisify(fs.readFile)
-const fileNameParser = (fileName) => {
-  const [_, id, __, name, type] = /^(([^_-]|-\d)+)[_-](.*).(sql|js)/gi.exec(fileName) // eslint-disable-line
-
-  return {
-    id: parseInt(id, 10),
-    name,
-    type,
-  }
-}
 
 function checkLoadJs(mutationDefinition) {
   if (mutationDefinition.type === "js") {

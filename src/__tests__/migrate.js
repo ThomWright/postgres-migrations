@@ -298,8 +298,8 @@ test("negative ID", (t) => {
     })
 })
 
-test("no prefix", (t) => {
-  const databaseName = "migration-test-prefix"
+test("invalid-file-name", (t) => {
+  const databaseName = "migration-test-invalid-file-name"
   const dbConfig = {
     database: databaseName,
     user: "postgres",
@@ -310,12 +310,12 @@ test("no prefix", (t) => {
 
   const promise = createDb(databaseName, dbConfig)
     .then(() => {
-      return migrate(dbConfig, "src/__tests__/fixtures/no-prefix")
+      return migrate(dbConfig, "src/__tests__/fixtures/invalid-file-name")
     })
 
   return t.throws(promise)
     .then((err) => {
-      t.regex(err.message, /Migration files should begin with an integer ID/)
+      t.regex(err.message, /Invalid file name/)
       t.regex(err.message, /migrate-this/, "Should name the problem file")
     })
 })
