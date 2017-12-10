@@ -85,8 +85,9 @@ function validateMigrations(migrations, appliedMigrations) {
   const {indexNotMatch, invalidHash} = migrationFile.validator(appliedMigrations)
 
   // Assert migration IDs are consecutive integers
-  if (migrations.some(indexNotMatch)) {
-    throw new Error("Found a non-consecutive migration ID")
+  const notMatchingId = migrations.find(indexNotMatch)
+  if (notMatchingId) {
+    throw new Error(`Found a non-consecutive migration ID on file: '${notMatchingId.fileName}'`)
   }
 
   // Assert migration hashs are still same
