@@ -1,20 +1,19 @@
+const {promisify} = require("util")
 const test = require("ava")
 const sinon = require("sinon")
-require("sinon-bluebird")
-
-const bluebird = require("bluebird")
+require("sinon-as-promised")
 
 const runMigration = require("../../run-migration")
 const loadSqlFromJs = require("../../load-sql-from-js")
 
-const readFile = bluebird.promisify(require("fs").readFile)
+const readFile = promisify(require("fs").readFile)
 
 let normalSqlFile
 let normalJsFile
 let noTransactionSqlFile
 
 test.before(() => {
-  return bluebird.all([
+  return Promise.all([
     readFile(__dirname + "/fixtures/normal.sql", "utf8").then(contents => {
       normalSqlFile = contents
     }),
@@ -23,7 +22,7 @@ test.before(() => {
       noTransactionSqlFile = contents
     }),
 
-    bluebird.resolve().then(() => {
+    Promise.resolve().then(() => {
       normalJsFile = loadSqlFromJs(__dirname + "/fixtures/normal.sql.js")
     }),
   ])
