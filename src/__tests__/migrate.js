@@ -295,10 +295,11 @@ test("negative ID", (t) => {
   return t.throws(promise)
     .then((err) => {
       t.regex(err.message, /Found a non-consecutive migration ID/)
+      t.regex(err.message, /-1_negative/, "Should name the problem file")
     })
 })
 
-test("invalid-file-name", (t) => {
+test("invalid file name", (t) => {
   const databaseName = "migration-test-invalid-file-name"
   const dbConfig = {
     database: databaseName,
