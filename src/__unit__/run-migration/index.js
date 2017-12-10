@@ -37,10 +37,11 @@ function buildMigration(sql) {
     hash: "hash",
   }
 }
+const migrationTableName = "migrations"
 
 test("runs a simple migration", t => {
   const query = sinon.stub().resolves()
-  const run = runMigration({query})
+  const run = runMigration(migrationTableName, {query})
 
   const migration = buildMigration(normalSqlFile)
 
@@ -74,7 +75,7 @@ test("runs a simple migration", t => {
 
 test("runs a simple js migration", t => {
   const query = sinon.stub().resolves()
-  const run = runMigration({query})
+  const run = runMigration(migrationTableName, {query})
 
   const migration = buildMigration(normalJsFile)
 
@@ -108,7 +109,7 @@ test("runs a simple js migration", t => {
 
 test("rolls back when there is an error inside a transactiony migration", t => {
   const query = sinon.stub().rejects(new Error("There was a problem"))
-  const run = runMigration({query})
+  const run = runMigration(migrationTableName, {query})
 
   const migration = buildMigration(normalSqlFile)
   t.plan(2)
@@ -124,7 +125,7 @@ test("rolls back when there is an error inside a transactiony migration", t => {
 
 test("does not run the migration in a transaction when instructed", t => {
   const query = sinon.stub().resolves()
-  const run = runMigration({query})
+  const run = runMigration(migrationTableName, {query})
 
   const migration = buildMigration(noTransactionSqlFile)
 
@@ -149,7 +150,7 @@ test(
   "does not roll back when there is an error inside a transactiony migration",
   t => {
     const query = sinon.stub().rejects(new Error("There was a problem"))
-    const run = runMigration({query})
+    const run = runMigration(migrationTableName, {query})
 
     const migration = buildMigration(noTransactionSqlFile)
 

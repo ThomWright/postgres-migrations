@@ -1,13 +1,21 @@
-const bluebird = require("bluebird")
 const SQL = require("sql-template-strings")
 const dedent = require("dedent-js")
 
-const noop = () => {}
+const noop = () => Promise.resolve()
+const insertMigration = async (migrationTableName, client, migration, log) => {
+  log(`Saving migration to '${migrationTableName}': ${migration.id} | ${migration.name} | ${migration.hash}`)
 
-module.exports = client => migration => {
-  const inTransaction = migration.sql
-    .split("\n")[0]
-    .indexOf("-- postgres-migrations disable-transaction") === -1
+  const sql = SQL`INSERT INTO `.append(migrationTableName).append(SQL` ("id", "name", "hash") VALUES (${migration.id},${migration.name},${migration.hash})`)
+
+  log(`Executing query: ${sql.text}:${sql.values}`)
+
+  return client.query(sql)
+}
+
+module.exports = (migrationTableName, client, log = noop) => async migration => {
+  const inTransaction = migration.sql.includes("-- postgres-migrations disable-transaction") === false
+
+  log(`Running migration in transaction: ${inTransaction}`)
 
   const begin = inTransaction
     ? () => client.query("START TRANSACTION")
@@ -21,27 +29,21 @@ module.exports = client => migration => {
     ? () => client.query("ROLLBACK")
     : noop
 
-  return bluebird
-    .resolve()
-    .then(begin)
-    .then(() => client.query(migration.sql))
-    .then(() => {
-      return client.query(
-        SQL`
-        INSERT INTO migrations (id, name, hash)
-          VALUES (${migration.id}, ${migration.name}, ${migration.hash})
-      `
-      )
-    })
-    .then(end)
-    .catch(err => {
-      return bluebird.resolve().tap(cleanup).then(() => {
-        throw new Error(
-          dedent`
+  try {
+    await begin()
+    await client.query(migration.sql)
+    await insertMigration(migrationTableName, client, migration, log)
+    await end()
+
+    return migration
+  } catch (err) {
+    await cleanup()
+
+    throw new Error(
+      dedent`
             An error occurred running '${migration.name}'. Rolled back this migration.
             No further migrations were run.
             Reason: ${err.message}`
-        )
-      })
-    })
+    )
+  }
 }

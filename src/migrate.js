@@ -30,6 +30,8 @@ function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-di
 
   const client = new pg.Client(dbConfig)
 
+  const migrationTableName = "migrations"
+
   client.on("error", (err) => {
     log(`pg client emitted an error: ${err.message}`)
   })
@@ -42,7 +44,7 @@ function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-di
       .then(() => log("Connected to database"))
       .then(() => loadMigrationFiles(migrationsDirectory, log))
       .then(filterMigrations(client))
-      .each(runMigration(client))
+      .each(runMigration(migrationTableName, client, log))
       .then(finalise(client, log))
       .catch((err) => {
         log(`Migration failed. Reason: ${err.message}`)
