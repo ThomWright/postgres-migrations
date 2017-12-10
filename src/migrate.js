@@ -1,18 +1,12 @@
 const pg = require("pg")
-const fs = require("fs")
-const crypto = require("crypto")
-const bluebird = require("bluebird")
-const path = require("path")
 const SQL = require("sql-template-strings")
 const dedent = require("dedent-js")
 
+const migrationFile = require("./migration-file")
 const runMigration = require("./run-migration")
-const loadSqlFromJs = require("./load-sql-from-js")
-const fileNameParser = require("./file-name-parser")
+const filesLoader = require("./files-loader")
 
-module.exports = migrate
-
-function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-disable-line complexity
+module.exports = async function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-disable-line complexity
   if (
     typeof dbConfig.database !== "string" ||
     typeof dbConfig.user !== "string" ||
@@ -20,17 +14,17 @@ function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-di
     typeof dbConfig.host !== "string" ||
     typeof dbConfig.port !== "number"
   ) {
-    return Promise.reject(new Error("Database config problem"))
+    throw new Error("Database config problem")
   }
   if (typeof migrationsDirectory !== "string") {
-    return Promise.reject(new Error("Must pass migrations directory as a string"))
+    throw new Error("Must pass migrations directory as a string")
   }
 
   const log = config.logger || (() => {})
 
-  const client = new pg.Client(dbConfig)
-
   const migrationTableName = "migrations"
+
+  const client = new pg.Client(dbConfig)
 
   client.on("error", (err) => {
     log(`pg client emitted an error: ${err.message}`)
@@ -38,153 +32,94 @@ function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-di
 
   log("Attempting database migration")
 
+  let executedMigrations = null
+
   try {
-    return bluebird.resolve()
-      .then(() => client.connect())
-      .then(() => log("Connected to database"))
-      .then(() => loadMigrationFiles(migrationsDirectory, log))
-      .then(filterMigrations(client))
-      .each(runMigration(migrationTableName, client, log))
-      .then(finalise(client, log))
-      .catch((err) => {
-        log(`Migration failed. Reason: ${err.message}`)
-        try {
-          return client.end()
-            .then(() => {
-              throw err
-            })
-            .catch(() => {
-              throw err
-            })
-        } catch (e) {
-          return Promise.reject(err)
-        }
-      })
-  } catch (e) {
-    return Promise.reject(e)
+    await client.connect()
+    log("Connected to database")
+
+    const migrations = await filesLoader.load(migrationsDirectory, log)
+
+    const appliedMigrations = await fetchAppliedMigrationFromDB(migrationTableName, client, log)
+
+    validateMigrations(migrations, appliedMigrations)
+
+    const filteredMigrations = filterMigrations(migrations, appliedMigrations)
+
+    const completedMigrations = await Promise.all(filteredMigrations.map(runMigration(migrationTableName, client, log)))
+
+    executedMigrations = finalize(completedMigrations, log)
+  } catch (err) {
+    log(`Migration failed. Reason: ${err.message}`)
+    throw new Error(dedent`
+      ${err.message}
+      ${err.stack}
+      Migration failed.`)
+  } finally {
+    await client.end()
   }
+
+  return executedMigrations
 }
 
-function finalise(client, log) {
-  return (completedMigrations) => {
-    if (completedMigrations.length === 0) {
-      log("No migrations applied")
-    } else {
-      const names = completedMigrations.map((m) => m.name)
-      log(`Successfully applied migrations: ${names}`)
-    }
+// Queries the database for migrations table and retrieve it rows if exists
+async function fetchAppliedMigrationFromDB(migrationTableName, client, log) {
+  let appliedMigrations = []
+  if (await doesTableExist(client, migrationTableName)) {
+    log(dedent`
+        Migrations table with name '${migrationTableName}' exists,
+        filtering not applied migrations.`)
 
-    return client.end()
-      .then(() => completedMigrations)
+    const {rows} = await client.query(`SELECT * FROM ${migrationTableName}`)
+    appliedMigrations = rows
+  } else {
+    log(dedent`
+        Migrations table with name '${migrationTableName}' hasn't been created,
+        so the database is new and we need to run all migrations.`)
+  }
+  return appliedMigrations
+}
+
+// Validates mutation order and hash
+function validateMigrations(migrations, appliedMigrations) {
+  const {indexNotMatch, invalidHash} = migrationFile.validator(appliedMigrations)
+
+  // Assert migration IDs are consecutive integers
+  if (migrations.some(indexNotMatch)) {
+    throw new Error("Found a non-consecutive migration ID")
+  }
+
+  // Assert migration hashs are still same
+  const invalidHashes = migrations.filter(invalidHash)
+  if (invalidHashes.length) {
+    // Someone has altered one or more migrations which has already run - gasp!
+    throw new Error(dedent`
+          Hashes don't match for migrations '${invalidHashes.map(({fileName}) => fileName)}'.
+          This means that the scripts has changed since it was applied.`)
   }
 }
 
 // Work out which migrations to apply
-function filterMigrations(client) {
-  return (migrations) => {
-    // Arrange in ID order
-    const orderedMigrations = migrations.sort((a, b) => a.id - b.id)
+function filterMigrations(migrations, appliedMigrations) {
+  const {notAppliedMigration} = migrationFile.validator(appliedMigrations)
 
-    // Assert their IDs are consecutive integers
-    migrations.forEach((mig, i) => {
-      if (mig.id !== i) {
-        throw new Error("Found a non-consecutive migration ID")
-      }
-    })
-
-    return doesTableExist(client, "migrations")
-      .then((exists) => {
-        if (!exists) {
-          // Migrations table hasn't been created,
-          // so the database is new and we need to run all migrations
-          return orderedMigrations
-        }
-
-        return client.query("SELECT * FROM migrations")
-          .then(filterUnappliedMigrations(orderedMigrations))
-      })
-  }
+  return migrations.filter(notAppliedMigration)
 }
 
-// Remove migrations that have already been applied
-function filterUnappliedMigrations(orderedMigrations) {
-  return ({rows: appliedMigrations}) => {
-    return orderedMigrations.filter((mig) => {
-      const migRecord = appliedMigrations[mig.id]
-      if (!migRecord) {
-        return true
-      }
-      if (migRecord.hash !== mig.hash) {
-        // Someone has altered a migration which has already run - gasp!
-        throw new Error(dedent`
-          Hashes don't match for migration file '${mig.fileName}'.
-          This means that the script has changed since it was applied.`)
-      }
-      return false
-    })
-  }
-}
-
-const isValidFile = fileName => /.(sql|js)$/gi.test(fileName)
-const readDir = bluebird.promisify(fs.readdir)
-function loadMigrationFiles(directory, log) {
-  log(`Loading migrations from: ${directory}`)
-  return readDir(directory)
-    .then((fileNames) => {
-      log(`Found migration files: ${fileNames}`)
-      return fileNames
-        .filter((fileName) => isValidFile(fileName))
-        .map((fileName) => path.resolve(directory, fileName))
-    })
-    .then((fileNames) => {
-      // Add a special zeroth migration to create the migrations table
-      fileNames.unshift(path.join(__dirname, "migrations/0_create-migrations-table.sql"))
-      return fileNames
-    })
-    .then((fileNames) => bluebird.map(fileNames, loadFile))
-}
-
-const readFile = bluebird.promisify(fs.readFile)
-
-function checkLoadJs(migrationDefinition) {
-  if (migrationDefinition.type === "js") {
-    migrationDefinition.sql = dedent(loadSqlFromJs(migrationDefinition.file))
-  }
-  return migrationDefinition
-}
-
-function loadFile(filePath) {
-  const fileName = path.basename(filePath)
-
-  const {id, name, type} = fileNameParser(fileName)
-  if (isNaN(id)) {
-    return Promise.reject(new Error(dedent`
-      Migration files should begin with an integer ID.
-      Offending file: '${fileName}'`))
+// Logs the result
+function finalize(completedMigrations, log) {
+  if (completedMigrations.length === 0) {
+    log("No migrations applied")
+  } else {
+    log(`Successfully applied migrations: ${completedMigrations.map(({name}) => name)}`)
   }
 
-  return readFile(filePath, "utf8")
-    .then((contents) => {
-      const hash = crypto.createHash("sha1")
-      hash.update(fileName + contents, "utf8")
-      const encodedHash = hash.digest("hex")
-
-      return {
-        id,
-        name,
-        type,
-        fileName,
-        sql: contents,
-        file: filePath,
-        hash: encodedHash,
-      }
-    })
-    .then(checkLoadJs)
+  return completedMigrations
 }
 
 // Check whether table exists in postgres - http://stackoverflow.com/a/24089729
-function doesTableExist(client, tableName) {
-  return client.query(SQL`
+async function doesTableExist(client, tableName) {
+  const result = await client.query(SQL`
       SELECT EXISTS (
         SELECT 1
         FROM   pg_catalog.pg_class c
@@ -192,7 +127,6 @@ function doesTableExist(client, tableName) {
         AND    c.relkind = 'r'
       );
     `)
-    .then((result) => {
-      return result.rows.length > 0 && result.rows[0].exists
-    })
+
+  return result.rows.length > 0 && result.rows[0].exists
 }

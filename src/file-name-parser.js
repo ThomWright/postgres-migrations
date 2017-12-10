@@ -1,5 +1,15 @@
 const dedent = require("dedent-js")
 
+const parseId = id => {
+  const parsed = parseInt(id, 10)
+  if (isNaN(parsed)) {
+    throw new Error(dedent`
+      Migration file name should begin with an integer ID.'`)
+  }
+
+  return parsed
+}
+
 module.exports = fileName => {
   const result = /^(-?\d+)[-_]?(.*).(sql|js)$/gi.exec(fileName)
 
@@ -11,7 +21,7 @@ module.exports = fileName => {
   const [, id, name, type] = result
 
   return {
-    id: parseInt(id, 10),
+    id: parseId(id),
     name: name ? name : fileName,
     type: type.toLowerCase(),
   }
