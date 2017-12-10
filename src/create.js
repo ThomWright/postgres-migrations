@@ -5,10 +5,10 @@ module.exports = createDb
 // Time out after 10 seconds - should probably be able to override this
 const DEFAULT_TIMEOUT = 10000
 
-function createDb(dbName, dbConfig = {}, config = {}) { // eslint-disable-line complexity
+async function createDb(dbName, dbConfig = {}, config = {}) { // eslint-disable-line complexity
   const {user, password, host, port} = dbConfig
   if (typeof dbName !== "string") {
-    return Promise.reject(new Error("Must pass database name as a string"))
+    throw new Error("Must pass database name as a string")
   }
   if (
     typeof user !== "string" ||
@@ -16,7 +16,7 @@ function createDb(dbName, dbConfig = {}, config = {}) { // eslint-disable-line c
     typeof host !== "string" ||
     typeof port !== "number"
   ) {
-    return Promise.reject(new Error("Database config problem"))
+    throw new Error("Database config problem")
   }
 
   const log = config.logger || (() => {})
@@ -32,13 +32,11 @@ function createDb(dbName, dbConfig = {}, config = {}) { // eslint-disable-line c
     port,
   }
 
-  return pgtools.createdb(
-    pgtoolsConfig,
-    dbName
-  )
-  .timeout(DEFAULT_TIMEOUT, `Timed out trying to create database: ${dbName}`) // pgtools uses Bluebird
-  .then(() => log(`Created database: ${dbName}`))
-  .catch((err) => {
+  try {
+    await pgtools.createdb(pgtoolsConfig, dbName)
+      .timeout(DEFAULT_TIMEOUT, `Timed out trying to create database: ${dbName}`) // pgtools uses Bluebird
+    log(`Created database: ${dbName}`)
+  } catch (err) {
     if (err) {
       // we are not worried about duplicate db errors
       if (err.name !== "duplicate_database") {
@@ -48,5 +46,5 @@ function createDb(dbName, dbConfig = {}, config = {}) { // eslint-disable-line c
         log(`'${dbName}' database already exists`)
       }
     }
-  })
+  }
 }
