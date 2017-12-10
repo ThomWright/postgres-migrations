@@ -37,7 +37,6 @@
     "dedent-js": "^1.0.1",
     "pg": "^7.1.2",
     "pgtools": "^0.3",
-    "sinon-as-promised": "^4.0.3",
     "sql-template-strings": "^2.2.2"
   },
   "devDependencies": {
@@ -45,6 +44,7 @@
     "ava": "^0.17.0",
     "eslint": "^3.9.1",
     "husky": "^0.11.9",
-    "sinon": "^1.17.0"
+    "sinon": "^1.17.0",
+    "sinon-as-promised": "^4.0.3"
   }
 }
