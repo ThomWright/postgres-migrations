@@ -1,7 +1,7 @@
 const SQL = require("sql-template-strings")
 const dedent = require("dedent-js")
 
-const noop = () => Promise.resolve()
+const noop = () => {}
 const insertMigration = async (migrationTableName, client, migration, log) => {
   log(`Saving migration to '${migrationTableName}': ${migration.id} | ${migration.name} | ${migration.hash}`)
 
@@ -27,7 +27,9 @@ module.exports = (migrationTableName, client, log = noop) => async migration => 
 
   const cleanup = inTransaction
     ? () => client.query("ROLLBACK")
-    : noop
+    : () => {
+      throw new Error("bb")
+    }
 
   try {
     await begin()
@@ -37,13 +39,15 @@ module.exports = (migrationTableName, client, log = noop) => async migration => 
 
     return migration
   } catch (err) {
-    await cleanup()
-
-    throw new Error(
-      dedent`
-            An error occurred running '${migration.name}'. Rolled back this migration.
-            No further migrations were run.
-            Reason: ${err.message}`
-    )
+    try {
+      await cleanup()
+    } finally {
+      throw new Error(
+        dedent`
+              An error occurred running '${migration.name}'. Rolled back this migration.
+              No further migrations were run.
+              Reason: ${err.message}`
+      )
+    }
   }
 }

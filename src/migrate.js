@@ -2,7 +2,6 @@ const pg = require("pg")
 const SQL = require("sql-template-strings")
 const dedent = require("dedent-js")
 
-const migrationFile = require("./migration-file")
 const runMigration = require("./run-migration")
 const filesLoader = require("./files-loader")
 
@@ -32,8 +31,6 @@ module.exports = async function migrate(dbConfig = {}, migrationsDirectory, conf
 
   log("Attempting database migration")
 
-  let executedMigrations = null
-
   try {
     await client.connect()
     log("Connected to database")
@@ -48,18 +45,19 @@ module.exports = async function migrate(dbConfig = {}, migrationsDirectory, conf
 
     const completedMigrations = await Promise.all(filteredMigrations.map(runMigration(migrationTableName, client, log)))
 
-    executedMigrations = finalize(completedMigrations, log)
-  } catch (err) {
-    log(`Migration failed. Reason: ${err.message}`)
-    throw new Error(dedent`
-      ${err.message}
-      ${err.stack}
-      Migration failed.`)
-  } finally {
-    await client.end()
-  }
+    logResult(completedMigrations, log)
 
-  return executedMigrations
+    return completedMigrations
+  } catch (err) {
+    const error = new Error(`Migration failed. Reason: ${err.message}`)
+    error.cause = err
+    throw error
+  } finally {
+    // always try to close the connection
+    try {
+      await client.end()
+    } catch (e) {} // eslint-disable-line
+  }
 }
 
 // Queries the database for migrations table and retrieve it rows if exists
@@ -82,7 +80,8 @@ async function fetchAppliedMigrationFromDB(migrationTableName, client, log) {
 
 // Validates mutation order and hash
 function validateMigrations(migrations, appliedMigrations) {
-  const {indexNotMatch, invalidHash} = migrationFile.validator(appliedMigrations)
+  const indexNotMatch = (migration, index) => migration.id !== index
+  const invalidHash = (migration) => appliedMigrations[migration.id] && appliedMigrations[migration.id].hash !== migration.hash
 
   // Assert migration IDs are consecutive integers
   const notMatchingId = migrations.find(indexNotMatch)
@@ -102,20 +101,18 @@ function validateMigrations(migrations, appliedMigrations) {
 
 // Work out which migrations to apply
 function filterMigrations(migrations, appliedMigrations) {
-  const {notAppliedMigration} = migrationFile.validator(appliedMigrations)
+  const notAppliedMigration = (migration) => !appliedMigrations[migration.id]
 
   return migrations.filter(notAppliedMigration)
 }
 
 // Logs the result
-function finalize(completedMigrations, log) {
+function logResult(completedMigrations, log) {
   if (completedMigrations.length === 0) {
     log("No migrations applied")
   } else {
     log(`Successfully applied migrations: ${completedMigrations.map(({name}) => name)}`)
   }
-
-  return completedMigrations
 }
 
 // Check whether table exists in postgres - http://stackoverflow.com/a/24089729

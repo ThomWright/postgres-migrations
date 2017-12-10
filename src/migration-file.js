@@ -31,12 +31,6 @@ const getSqlStringLiteral = (filePath, contents, type) => {
   return result
 }
 
-module.exports.validator = (appliedMigrations = []) => ({
-  indexNotMatch: (migration, index) => migration.id !== index,
-  notAppliedMigration: (migration) => !appliedMigrations[migration.id],
-  invalidHash: (migration) => appliedMigrations[migration.id] && appliedMigrations[migration.id].hash !== migration.hash,
-})
-
 module.exports.load = async filePath => {
   const fileName = getFileName(filePath)
 
