@@ -27,9 +27,7 @@ module.exports = (migrationTableName, client, log = noop) => async migration => 
 
   const cleanup = inTransaction
     ? () => client.query("ROLLBACK")
-    : () => {
-      throw new Error("bb")
-    }
+    : noop
 
   try {
     await begin()
