@@ -89,13 +89,13 @@ function validateMigrations(migrations, appliedMigrations) {
     throw new Error(`Found a non-consecutive migration ID on file: '${notMatchingId.fileName}'`)
   }
 
-  // Assert migration hashs are still same
+  // Assert migration hashes are still same
   const invalidHashes = migrations.filter(invalidHash)
   if (invalidHashes.length) {
     // Someone has altered one or more migrations which has already run - gasp!
     throw new Error(dedent`
           Hashes don't match for migrations '${invalidHashes.map(({fileName}) => fileName)}'.
-          This means that the scripts has changed since it was applied.`)
+          This means that the scripts have changed since it was applied.`)
   }
 }
 
