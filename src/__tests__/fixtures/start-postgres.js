@@ -23,6 +23,8 @@ module.exports = (containerName, t) => {
     })
     events.on("error", (err) => {
       console.error("Error in 'docker events' process:", err)
+      events.kill()
+      t.fail(err)
     })
 
     execSync(`docker run --detach --publish-all  \
