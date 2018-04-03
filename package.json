@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "description": "Stack Overflow style database migrations for PostgreSQL",
   "main": "src/index.js",
+  "types": "src/index.d.ts",
   "author": "Thom Wright",
   "keywords": [
     "postgres",
