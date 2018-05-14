@@ -43,7 +43,14 @@ module.exports = async function migrate(dbConfig = {}, migrationsDirectory, conf
 
     const filteredMigrations = filterMigrations(migrations, appliedMigrations)
 
-    const completedMigrations = await Promise.all(filteredMigrations.map(runMigration(migrationTableName, client, log)))
+    const completedMigrations = []
+
+    for (const migration of filteredMigrations) {
+      const result = await runMigration(
+        migrationTableName, client, log
+      )(migration)
+      completedMigrations.push(result)
+    }
 
     logResult(completedMigrations, log)
 
