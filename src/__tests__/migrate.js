@@ -254,7 +254,8 @@ test("no migrations dir", t => {
   })
 })
 
-test("empty migrations dir", () => {
+test("empty migrations dir", t => {
+  t.plan(0)
   const databaseName = "migration-test-empty-dir"
   const dbConfig = {
     database: databaseName,

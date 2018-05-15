@@ -14,7 +14,9 @@ test.cb.before(t => {
   port = startPostgres(CONTAINER_NAME, t)
 })
 
-test("successful creation", () => {
+test("successful creation", t => {
+  t.plan(0)
+
   return createDb("create-test-success", {
     user: "postgres",
     password: PASSWORD,
@@ -104,7 +106,8 @@ test("bad arguments - incorrect port", t => {
     })
 })
 
-test("already created", () => {
+test("already created", t => {
+  t.plan(0)
   const create = () =>
     createDb("create-test-duplicate", {
       user: "postgres",
@@ -116,7 +119,8 @@ test("already created", () => {
   return create().then(create)
 })
 
-test("database name included in config", () => {
+test("database name included in config", t => {
+  t.plan(0)
   const create = () =>
     createDb("create-test-db-name", {
       database: "somethingsilly",
@@ -129,7 +133,8 @@ test("database name included in config", () => {
   return create().then(create)
 })
 
-test("custom default database name", () => {
+test("custom default database name", t => {
+  t.plan(0)
   const create = () =>
     createDb("create-test-default-db", {
       defaultDatabase: "postgres",
