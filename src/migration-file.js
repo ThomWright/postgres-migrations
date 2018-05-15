@@ -13,20 +13,24 @@ const getFileName = filePath => path.basename(filePath)
 
 const getFileContents = async filePath => readFile(filePath, "utf8")
 
-const hashString = string => crypto.createHash("sha1").update(string, "utf8").digest("hex")
+const hashString = string =>
+  crypto
+    .createHash("sha1")
+    .update(string, "utf8")
+    .digest("hex")
 
 const getSqlStringLiteral = (filePath, contents, type) => {
   let result
   switch (type) {
-  case "sql":
-    result = contents
-    break
-  case "js":
-    result = dedent(loadSqlFromJs(filePath))
-    break
-  default:
-    result = null
-    break
+    case "sql":
+      result = contents
+      break
+    case "js":
+      result = dedent(loadSqlFromJs(filePath))
+      break
+    default:
+      result = null
+      break
   }
   return result
 }

@@ -5,7 +5,12 @@ const dedent = require("dedent-js")
 const runMigration = require("./run-migration")
 const filesLoader = require("./files-loader")
 
-module.exports = async function migrate(dbConfig = {}, migrationsDirectory, config = {}) { // eslint-disable-line complexity
+module.exports = async function migrate(
+  dbConfig = {},
+  migrationsDirectory,
+  config = {},
+) {
+  // eslint-disable-line complexity
   if (
     typeof dbConfig.database !== "string" ||
     typeof dbConfig.user !== "string" ||
@@ -19,13 +24,17 @@ module.exports = async function migrate(dbConfig = {}, migrationsDirectory, conf
     throw new Error("Must pass migrations directory as a string")
   }
 
+  return runMigrations(dbConfig, migrationsDirectory, config)
+}
+
+async function runMigrations(dbConfig, migrationsDirectory, config) {
   const log = config.logger || (() => {})
 
   const migrationTableName = "migrations"
 
   const client = new pg.Client(dbConfig)
 
-  client.on("error", (err) => {
+  client.on("error", err => {
     log(`pg client emitted an error: ${err.message}`)
   })
 
@@ -37,7 +46,11 @@ module.exports = async function migrate(dbConfig = {}, migrationsDirectory, conf
 
     const migrations = await filesLoader.load(migrationsDirectory, log)
 
-    const appliedMigrations = await fetchAppliedMigrationFromDB(migrationTableName, client, log)
+    const appliedMigrations = await fetchAppliedMigrationFromDB(
+      migrationTableName,
+      client,
+      log,
+    )
 
     validateMigrations(migrations, appliedMigrations)
 
@@ -46,9 +59,9 @@ module.exports = async function migrate(dbConfig = {}, migrationsDirectory, conf
     const completedMigrations = []
 
     for (const migration of filteredMigrations) {
-      const result = await runMigration(
-        migrationTableName, client, log
-      )(migration)
+      const result = await runMigration(migrationTableName, client, log)(
+        migration,
+      )
       completedMigrations.push(result)
     }
 
@@ -88,12 +101,18 @@ async function fetchAppliedMigrationFromDB(migrationTableName, client, log) {
 // Validates mutation order and hash
 function validateMigrations(migrations, appliedMigrations) {
   const indexNotMatch = (migration, index) => migration.id !== index
-  const invalidHash = (migration) => appliedMigrations[migration.id] && appliedMigrations[migration.id].hash !== migration.hash
+  const invalidHash = migration =>
+    appliedMigrations[migration.id] &&
+    appliedMigrations[migration.id].hash !== migration.hash
 
   // Assert migration IDs are consecutive integers
   const notMatchingId = migrations.find(indexNotMatch)
   if (notMatchingId) {
-    throw new Error(`Found a non-consecutive migration ID on file: '${notMatchingId.fileName}'`)
+    throw new Error(
+      `Found a non-consecutive migration ID on file: '${
+        notMatchingId.fileName
+      }'`,
+    )
   }
 
   // Assert migration hashes are still same
@@ -101,14 +120,16 @@ function validateMigrations(migrations, appliedMigrations) {
   if (invalidHashes.length) {
     // Someone has altered one or more migrations which has already run - gasp!
     throw new Error(dedent`
-          Hashes don't match for migrations '${invalidHashes.map(({fileName}) => fileName)}'.
+          Hashes don't match for migrations '${invalidHashes.map(
+            ({fileName}) => fileName,
+          )}'.
           This means that the scripts have changed since it was applied.`)
   }
 }
 
 // Work out which migrations to apply
 function filterMigrations(migrations, appliedMigrations) {
-  const notAppliedMigration = (migration) => !appliedMigrations[migration.id]
+  const notAppliedMigration = migration => !appliedMigrations[migration.id]
 
   return migrations.filter(notAppliedMigration)
 }
@@ -118,7 +139,11 @@ function logResult(completedMigrations, log) {
   if (completedMigrations.length === 0) {
     log("No migrations applied")
   } else {
-    log(`Successfully applied migrations: ${completedMigrations.map(({name}) => name)}`)
+    log(
+      `Successfully applied migrations: ${completedMigrations.map(
+        ({name}) => name,
+      )}`,
+    )
   }
 }
 

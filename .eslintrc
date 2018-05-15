@@ -1,2 +1,4 @@
 ---
   extends: "@mft/eslint-config-momentumft"
+  rules:
+    indent: ["error", 2, { "SwitchCase": 1 }]

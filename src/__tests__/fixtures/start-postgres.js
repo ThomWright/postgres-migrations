@@ -8,11 +8,14 @@ module.exports = (containerName, t) => {
   try {
     const events = spawn("docker", [
       "events",
-      "--filter", "type=container",
-      "--filter", `container=${containerName}`,
-      "--filter", "event=health_status",
+      "--filter",
+      "type=container",
+      "--filter",
+      `container=${containerName}`,
+      "--filter",
+      "event=health_status",
     ])
-    events.stdout.on("data", (data) => {
+    events.stdout.on("data", data => {
       data = data.toString()
 
       if (data.includes("health_status: healthy")) {
@@ -21,7 +24,7 @@ module.exports = (containerName, t) => {
         t.end()
       }
     })
-    events.on("error", (err) => {
+    events.on("error", err => {
       console.error("Error in 'docker events' process:", err)
       events.kill()
       t.fail(err)

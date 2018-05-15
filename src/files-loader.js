@@ -32,7 +32,9 @@ module.exports.load = async (directory, log) => {
       ...fileNames.reduce(filterAndResolveFileName(directory), []),
     ]
 
-    const unorderedMigrations = await Promise.all(migrationFiles.map(migrationFile.load))
+    const unorderedMigrations = await Promise.all(
+      migrationFiles.map(migrationFile.load),
+    )
 
     // Arrange in ID order
     orderedMigrations = unorderedMigrations.sort((a, b) => a.id - b.id)

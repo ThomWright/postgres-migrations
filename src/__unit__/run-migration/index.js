@@ -18,9 +18,11 @@ test.before(() => {
       normalSqlFile = contents
     }),
 
-    readFile(__dirname + "/fixtures/no-transaction.sql", "utf8").then(contents => {
-      noTransactionSqlFile = contents
-    }),
+    readFile(__dirname + "/fixtures/no-transaction.sql", "utf8").then(
+      contents => {
+        noTransactionSqlFile = contents
+      },
+    ),
 
     Promise.resolve().then(() => {
       normalJsFile = loadSqlFromJs(__dirname + "/fixtures/normal.sql.js")
@@ -49,26 +51,22 @@ test("runs a simple migration", t => {
     t.is(
       query.firstCall.args[0],
       "START TRANSACTION",
-      "should begin a transaction"
+      "should begin a transaction",
     )
 
     t.is(
       query.secondCall.args[0],
       migration.sql,
-      "should execute the migration"
+      "should execute the migration",
     )
 
     t.deepEqual(
       query.thirdCall.args[0].values,
       [migration.id, migration.name, migration.hash],
-      "should record the running of the migration in the database"
+      "should record the running of the migration in the database",
     )
 
-    t.is(
-      query.lastCall.args[0],
-      "COMMIT",
-      "should complete the transaction"
-    )
+    t.is(query.lastCall.args[0], "COMMIT", "should complete the transaction")
   })
 })
 
@@ -83,26 +81,22 @@ test("runs a simple js migration", t => {
     t.is(
       query.firstCall.args[0],
       "START TRANSACTION",
-      "should begin a transaction"
+      "should begin a transaction",
     )
 
     t.is(
       query.secondCall.args[0],
       migration.sql,
-      "should execute the migration"
+      "should execute the migration",
     )
 
     t.deepEqual(
       query.thirdCall.args[0].values,
       [migration.id, migration.name, migration.hash],
-      "should record the running of the migration in the database"
+      "should record the running of the migration in the database",
     )
 
-    t.is(
-      query.lastCall.args[0],
-      "COMMIT",
-      "should complete the transaction"
-    )
+    t.is(query.lastCall.args[0], "COMMIT", "should complete the transaction")
   })
 })
 
@@ -117,7 +111,7 @@ test("rolls back when there is an error inside a transactiony migration", t => {
     t.is(query.lastCall.args[0], "ROLLBACK", "should perform a rollback")
     t.true(
       e.message.indexOf("There was a problem") >= 0,
-      "should throw an error"
+      "should throw an error",
     )
   })
 })
@@ -131,34 +125,27 @@ test("does not run the migration in a transaction when instructed", t => {
   return run(migration).then(() => {
     t.is(query.callCount, 2)
 
-    t.is(
-      query.firstCall.args[0],
-      migration.sql,
-      "should run the migration"
-    )
+    t.is(query.firstCall.args[0], migration.sql, "should run the migration")
 
     t.deepEqual(
       query.secondCall.args[0].values,
       [migration.id, migration.name, migration.hash],
-      "should record the running of the migration in the database"
+      "should record the running of the migration in the database",
     )
   })
 })
 
-test(
-  "does not roll back when there is an error inside a transactiony migration",
-  t => {
-    const query = sinon.stub().rejects(new Error("There was a problem"))
-    const run = runMigration(migrationTableName, {query})
+test("does not roll back when there is an error inside a transactiony migration", t => {
+  const query = sinon.stub().rejects(new Error("There was a problem"))
+  const run = runMigration(migrationTableName, {query})
 
-    const migration = buildMigration(noTransactionSqlFile)
+  const migration = buildMigration(noTransactionSqlFile)
 
-    return run(migration).catch(e => {
-      sinon.assert.neverCalledWith(query, "ROLLBACK")
-      t.true(
-        e.message.indexOf("There was a problem") >= 0,
-        "should throw an error"
-      )
-    })
-  }
-)
+  return run(migration).catch(e => {
+    sinon.assert.neverCalledWith(query, "ROLLBACK")
+    t.true(
+      e.message.indexOf("There was a problem") >= 0,
+      "should throw an error",
+    )
+  })
+})
