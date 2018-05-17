@@ -11,6 +11,9 @@ const migrate = require("../migrate")
 const CONTAINER_NAME = "pg-migrations-test-migrate"
 const PASSWORD = startPostgres.PASSWORD
 
+const runMigration = (dbConfig, migrationsDirectory) =>
+  migrate(dbConfig, migrationsDirectory, {logger: console.log})
+
 let port
 
 process.on("uncaughtException", function(err) {
@@ -32,7 +35,7 @@ test("successful first migration", t => {
   }
 
   return createDb(databaseName, dbConfig)
-    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-first"))
+    .then(() => runMigration(dbConfig, "src/__tests__/fixtures/success-first"))
     .then(() => doesTableExist(dbConfig, "success"))
     .then(exists => {
       t.truthy(exists)
@@ -50,8 +53,8 @@ test("successful second migration", t => {
   }
 
   return createDb(databaseName, dbConfig)
-    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-first"))
-    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-second"))
+    .then(() => runMigration(dbConfig, "src/__tests__/fixtures/success-first"))
+    .then(() => runMigration(dbConfig, "src/__tests__/fixtures/success-second"))
     .then(() => doesTableExist(dbConfig, "more_success"))
     .then(exists => {
       t.truthy(exists)
@@ -69,7 +72,9 @@ test("successful first javascript migration", t => {
   }
 
   return createDb(databaseName, dbConfig)
-    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-js-first"))
+    .then(() =>
+      runMigration(dbConfig, "src/__tests__/fixtures/success-js-first"),
+    )
     .then(() => doesTableExist(dbConfig, "success"))
     .then(exists => {
       t.truthy(exists)
@@ -87,9 +92,14 @@ test("successful second mixed js and sql migration", t => {
   }
 
   return createDb(databaseName, dbConfig)
-    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-js-first"))
     .then(() =>
-      migrate(dbConfig, "src/__tests__/fixtures/success-second-mixed-js-sql"),
+      runMigration(dbConfig, "src/__tests__/fixtures/success-js-first"),
+    )
+    .then(() =>
+      runMigration(
+        dbConfig,
+        "src/__tests__/fixtures/success-second-mixed-js-sql",
+      ),
     )
     .then(() => doesTableExist(dbConfig, "more_success"))
     .then(exists => {
@@ -108,7 +118,9 @@ test("successful complex js migration", t => {
   }
 
   return createDb(databaseName, dbConfig)
-    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-complex-js"))
+    .then(() =>
+      runMigration(dbConfig, "src/__tests__/fixtures/success-complex-js"),
+    )
     .then(() => doesTableExist(dbConfig, "complex"))
     .then(exists => {
       t.truthy(exists)
@@ -246,7 +258,7 @@ test("no migrations dir", t => {
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
-    return migrate(dbConfig, "some/path")
+    return runMigration(dbConfig, "some/path")
   })
 
   return t.throws(promise).then(err => {
@@ -266,7 +278,7 @@ test("empty migrations dir", t => {
   }
 
   return createDb(databaseName, dbConfig).then(() => {
-    return migrate(dbConfig, "src/__tests__/fixtures/empty")
+    return runMigration(dbConfig, "src/__tests__/fixtures/empty")
   })
 })
 
@@ -281,7 +293,7 @@ test("non-consecutive ordering", t => {
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
-    return migrate(dbConfig, "src/__tests__/fixtures/non-consecutive")
+    return runMigration(dbConfig, "src/__tests__/fixtures/non-consecutive")
   })
 
   return t.throws(promise).then(err => {
@@ -300,7 +312,7 @@ test("not starting from one", t => {
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
-    return migrate(dbConfig, "src/__tests__/fixtures/start-from-2")
+    return runMigration(dbConfig, "src/__tests__/fixtures/start-from-2")
   })
 
   return t.throws(promise).then(err => {
@@ -319,7 +331,7 @@ test("negative ID", t => {
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
-    return migrate(dbConfig, "src/__tests__/fixtures/negative")
+    return runMigration(dbConfig, "src/__tests__/fixtures/negative")
   })
 
   return t.throws(promise).then(err => {
@@ -339,7 +351,7 @@ test("invalid file name", t => {
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
-    return migrate(dbConfig, "src/__tests__/fixtures/invalid-file-name")
+    return runMigration(dbConfig, "src/__tests__/fixtures/invalid-file-name")
   })
 
   return t.throws(promise).then(err => {
@@ -359,7 +371,7 @@ test("syntax error", t => {
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
-    return migrate(dbConfig, "src/__tests__/fixtures/syntax-error")
+    return runMigration(dbConfig, "src/__tests__/fixtures/syntax-error")
   })
 
   return t.throws(promise).then(err => {
@@ -378,7 +390,7 @@ test("bad javascript file - no generateSql method exported", t => {
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
-    return migrate(dbConfig, "src/__tests__/fixtures/js-no-generate-sql")
+    return runMigration(dbConfig, "src/__tests__/fixtures/js-no-generate-sql")
   })
 
   return t.throws(promise).then(err => {
@@ -397,7 +409,7 @@ test("bad javascript file - generateSql not returning string literal", t => {
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
-    return migrate(dbConfig, "src/__tests__/fixtures/js-no-string-literal")
+    return runMigration(dbConfig, "src/__tests__/fixtures/js-no-string-literal")
   })
 
   return t.throws(promise).then(err => {
@@ -417,10 +429,10 @@ test("hash check failure", t => {
 
   const promise = createDb(databaseName, dbConfig)
     .then(() =>
-      migrate(dbConfig, "src/__tests__/fixtures/hash-check/first-run"),
+      runMigration(dbConfig, "src/__tests__/fixtures/hash-check/first-run"),
     )
     .then(() =>
-      migrate(dbConfig, "src/__tests__/fixtures/hash-check/second-run"),
+      runMigration(dbConfig, "src/__tests__/fixtures/hash-check/second-run"),
     )
 
   return t.throws(promise).then(err => {
@@ -440,7 +452,7 @@ test("rollback", t => {
   }
 
   const promise = createDb(databaseName, dbConfig).then(() =>
-    migrate(dbConfig, "src/__tests__/fixtures/rollback"),
+    runMigration(dbConfig, "src/__tests__/fixtures/rollback"),
   )
 
   return t
