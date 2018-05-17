@@ -60,6 +60,18 @@ The production database sees the migrations applied out of order with respect to
 
 A `migrations` table is created as the first migration, before any user-supplied migrations. This keeps track of all the migrations which have already been run.
 
+You can specify a different name by passing a config object as the third parameter to `migrate` with the property `migrationTableName`, as shown below:
+
+```js
+const { migrate} = require("postgres-migrations")
+
+migrate(
+  dbConfig
+  "path/to/migration/files",
+  { migrationTableName: "custom_migrations_table"}
+)
+```
+
 ### Hash checks for previous migrations
 
 Previously run migration scripts shouldn't be modified, since we want the process to be repeated in the same way for every new environment.

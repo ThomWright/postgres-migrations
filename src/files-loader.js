@@ -28,7 +28,7 @@ module.exports.load = async (directory, log) => {
   let orderedMigrations = []
   if (fileNames) {
     const migrationFiles = [
-      path.join(__dirname, "migrations/0_create-migrations-table.sql"),
+      path.join(__dirname, "migrations/0_index-place-holder.sql"),
       ...fileNames.reduce(filterAndResolveFileName(directory), []),
     ]
 

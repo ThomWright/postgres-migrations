@@ -30,7 +30,7 @@ module.exports = async function migrate(
 async function runMigrations(dbConfig, migrationsDirectory, config) {
   const log = config.logger || (() => {})
 
-  const migrationTableName = "migrations"
+  const migrationTableName = config.migrationTableName || "migrations"
 
   const client = new pg.Client(dbConfig)
 
@@ -53,6 +53,9 @@ async function runMigrations(dbConfig, migrationsDirectory, config) {
     )
 
     validateMigrations(migrations, appliedMigrations)
+
+    await createMigrationsTable(client, migrationTableName)
+    log("Migrations table created")
 
     const filteredMigrations = filterMigrations(migrations, appliedMigrations)
 
@@ -78,6 +81,17 @@ async function runMigrations(dbConfig, migrationsDirectory, config) {
       await client.end()
     } catch (e) {} // eslint-disable-line
   }
+}
+
+function createMigrationsTable(client, migrationTableName) {
+  return client.query(`
+    CREATE TABLE IF NOT EXISTS ${migrationTableName} (
+      id integer PRIMARY KEY,
+      name varchar(100) UNIQUE NOT NULL,
+      hash varchar(40) NOT NULL,
+      executed_at timestamp DEFAULT current_timestamp
+    );
+  `)
 }
 
 // Queries the database for migrations table and retrieve it rows if exists

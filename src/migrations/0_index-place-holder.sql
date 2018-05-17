@@ -1,0 +1,3 @@
+-- This file exists so that the other migration files' orders and array index will match
+-- (e.g. 1-script.sql will be the 2nd row (index 1) in the database)
+-- It makes the code much simpler in a few places
