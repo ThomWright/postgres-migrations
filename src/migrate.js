@@ -54,6 +54,9 @@ async function runMigrations(dbConfig, migrationsDirectory, config) {
 
     validateMigrations(migrations, appliedMigrations)
 
+    await createMigrationsTable(client)
+    log("Migrations table created")
+
     const filteredMigrations = filterMigrations(migrations, appliedMigrations)
 
     const completedMigrations = []
@@ -78,6 +81,17 @@ async function runMigrations(dbConfig, migrationsDirectory, config) {
       await client.end()
     } catch (e) {} // eslint-disable-line
   }
+}
+
+function createMigrationsTable(client) {
+  return client.query(`
+    CREATE TABLE IF NOT EXISTS migrations (
+      id integer PRIMARY KEY,
+      name varchar(100) UNIQUE NOT NULL,
+      hash varchar(40) NOT NULL,
+      executed_at timestamp DEFAULT current_timestamp
+    );
+  `)
 }
 
 // Queries the database for migrations table and retrieve it rows if exists
