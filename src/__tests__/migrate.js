@@ -11,8 +11,12 @@ const migrate = require("../migrate")
 const CONTAINER_NAME = "pg-migrations-test-migrate"
 const PASSWORD = startPostgres.PASSWORD
 
+const MIGRATION_TABLE = "test_migrations_table"
+
 const runMigration = (dbConfig, migrationsDirectory) =>
-  migrate(dbConfig, migrationsDirectory, {logger: console.log})
+  migrate(dbConfig, migrationsDirectory, {
+    migrationTableName: MIGRATION_TABLE,
+  })
 
 let port
 
@@ -22,6 +26,24 @@ process.on("uncaughtException", function(err) {
 
 test.cb.before(t => {
   port = startPostgres(CONTAINER_NAME, t)
+})
+
+test("create migration table", t => {
+  const databaseName = "migration-table-name-test"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  return createDb(databaseName, dbConfig)
+    .then(() => runMigration(dbConfig, "src/__tests__/fixtures/success-first"))
+    .then(() => doesTableExist(dbConfig, MIGRATION_TABLE))
+    .then(exists => {
+      t.truthy(exists)
+    })
 })
 
 test("successful first migration", t => {
