@@ -24,8 +24,8 @@ test.before(() => {
       },
     ),
 
-    Promise.resolve().then(() => {
-      normalJsFile = loadSqlFromJs(__dirname + "/fixtures/normal.sql.js")
+    loadSqlFromJs(__dirname + "/fixtures/normal.sql.js").then(sql => {
+      normalJsFile = sql
     }),
   ])
 })

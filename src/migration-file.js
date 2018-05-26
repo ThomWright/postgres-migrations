@@ -19,35 +19,39 @@ const hashString = string =>
     .update(string, "utf8")
     .digest("hex")
 
-const getSqlStringLiteral = (filePath, contents, type) => {
-  let result
-  switch (type) {
-    case "sql":
-      result = contents
-      break
-    case "js":
-      result = dedent(loadSqlFromJs(filePath))
-      break
-    default:
-      result = null
-      break
+const getSqlStringLiteral = async (filePath, type, migrationConfig) => {
+  const content = await getFileContents(filePath)
+  let sql = null
+
+  if (type === "sql") {
+    sql = content
   }
-  return result
+
+  if (type === "js") {
+    const sqlFromJs = await loadSqlFromJs(filePath, migrationConfig)
+    sql = dedent(sqlFromJs)
+  }
+
+  return {sql, content}
 }
 
-module.exports.load = async filePath => {
+module.exports.load = async (filePath, migrationConfig) => {
   const fileName = getFileName(filePath)
 
   try {
     const {id, name, type} = fileNameParser(fileName)
-    const contents = await getFileContents(filePath)
-    const hash = hashString(fileName + contents)
-    const sql = getSqlStringLiteral(filePath, contents, type)
+    const {sql, content} = await getSqlStringLiteral(
+      filePath,
+      type,
+      migrationConfig,
+    )
+    const hash = hashString(
+      fileName + content + JSON.stringify(migrationConfig),
+    )
 
     return {
       id,
       name,
-      contents,
       fileName,
       hash,
       sql,
