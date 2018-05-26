@@ -30,7 +30,10 @@ createDb("database-name", {
     password: "password",
     host: "localhost",
     port: 5432,
-  }, "path/to/migration/files")
+  }, "path/to/migration/files", {
+    migrationTableName: "migrations",
+    logger: console.log,
+  })
 })
 .then(() => {/* ... */})
 .catch((err) => {
@@ -133,27 +136,54 @@ Note that file names cannot be changed later.
 
 ### Javascript Migrations
 
-By using `.js` extension on your migration file you gain access to all NodeJS features and only need to export a method called `generateSql` that returns a `string` literal like:
+We support `.js` files as your migration file, there are five kind of supported exports, all of them needing to return a `string` literal:
 
+#### Plain string literal
 ```js
-// ./migrations/helpers/create-main-table.js
 module.exports = `
 CREATE TABLE main (
     id int primary key
 );`
+```
 
-// ./migrations/helpers/create-secondary-table.js
-module.exports = `
-CREATE TABLE secondary (
+#### Anonymous function
+```js
+module.exports = () => `
+CREATE TABLE main (
     id int primary key
 );`
+```
 
-// ./migrations/1-init.js
-const createMainTable = require('./create-main-table')
-const createSecondaryTable = require('./create-secondary-table')
+#### Async anonymous function
+```js
+module.exports = async () => new Promise((resolve) => {
+  setTimeout(() => {
+    resolve(`
+      CREATE TABLE main (
+          id int primary key
+      );`)
+  }, 1000)
+})
+```
 
-module.exports.generateSql = () => `${createMainTable}
-${createSecondaryTable}`
+#### generateSql function
+```js
+module.exports.generateSql = () => `
+CREATE TABLE main (
+    id int primary key
+);`
+```
+
+#### Async generateSql function
+```js
+module.exports.generateSql = async () => new Promise((resolve) => {
+  setTimeout(() => {
+    resolve(`
+      CREATE TABLE main (
+          id int primary key
+      );`)
+  }, 1000)
+})
 ```
 
 ## Tips

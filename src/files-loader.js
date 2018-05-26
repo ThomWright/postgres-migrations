@@ -19,7 +19,7 @@ function filterAndResolveFileName(directory) {
   }
 }
 
-module.exports.load = async (directory, log) => {
+module.exports.load = async (directory, migrationConfig, log) => {
   log(`Loading migrations from: ${directory}`)
 
   const fileNames = await readDir(directory)
@@ -28,13 +28,17 @@ module.exports.load = async (directory, log) => {
   let orderedMigrations = []
   if (fileNames) {
     const migrationFiles = [
-      path.join(__dirname, "migrations/0_create-migrations-table.sql"),
+      path.join(__dirname, "migrations/0-create-migrations-table.js"),
       ...fileNames.reduce(filterAndResolveFileName(directory), []),
     ]
 
     const unorderedMigrations = await Promise.all(
-      migrationFiles.map(migrationFile.load),
+      migrationFiles.map(filePath =>
+        migrationFile.load(filePath, migrationConfig),
+      ),
     )
+
+    log(unorderedMigrations)
 
     // Arrange in ID order
     orderedMigrations = unorderedMigrations.sort((a, b) => a.id - b.id)

@@ -5,12 +5,12 @@ const dedent = require("dedent-js")
 const runMigration = require("./run-migration")
 const filesLoader = require("./files-loader")
 
-module.exports = async function migrate(
-  dbConfig = {},
-  migrationsDirectory,
-  config = {},
-) {
-  // eslint-disable-line complexity
+const defaultConfig = {
+  migrationTableName: "migrations",
+  logger: () => {},
+}
+
+const argumentsCheck = (dbConfig, migrationsDirectory) => {
   if (
     typeof dbConfig.database !== "string" ||
     typeof dbConfig.user !== "string" ||
@@ -23,14 +23,18 @@ module.exports = async function migrate(
   if (typeof migrationsDirectory !== "string") {
     throw new Error("Must pass migrations directory as a string")
   }
-
-  return runMigrations(dbConfig, migrationsDirectory, config)
 }
 
-async function runMigrations(dbConfig, migrationsDirectory, config) {
-  const log = config.logger || (() => {})
+module.exports = async function migrate(
+  dbConfig = {},
+  migrationsDirectory,
+  config = {},
+) {
+  argumentsCheck(dbConfig, migrationsDirectory)
 
-  const migrationTableName = "migrations"
+  const finalConfig = Object.assign({}, defaultConfig, config)
+
+  const {migrationTableName, logger: log} = finalConfig
 
   const client = new pg.Client(dbConfig)
 
@@ -44,7 +48,11 @@ async function runMigrations(dbConfig, migrationsDirectory, config) {
     await client.connect()
     log("Connected to database")
 
-    const migrations = await filesLoader.load(migrationsDirectory, log)
+    const migrations = await filesLoader.load(
+      migrationsDirectory,
+      finalConfig,
+      log,
+    )
 
     const appliedMigrations = await fetchAppliedMigrationFromDB(
       migrationTableName,

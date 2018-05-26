@@ -50,8 +50,16 @@ test("successful second migration", t => {
   }
 
   return createDb(databaseName, dbConfig)
-    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-first"))
-    .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-second"))
+    .then(() =>
+      migrate(dbConfig, "src/__tests__/fixtures/success-first", {
+        logger: console.log,
+      }),
+    )
+    .then(() =>
+      migrate(dbConfig, "src/__tests__/fixtures/success-second", {
+        logger: console.log,
+      }),
+    )
     .then(() => doesTableExist(dbConfig, "more_success"))
     .then(exists => {
       t.truthy(exists)
@@ -364,25 +372,6 @@ test("syntax error", t => {
 
   return t.throws(promise).then(err => {
     t.regex(err.message, /syntax error/)
-  })
-})
-
-test("bad javascript file - no generateSql method exported", t => {
-  const databaseName = "migration-test-javascript-file-errors"
-  const dbConfig = {
-    database: databaseName,
-    user: "postgres",
-    password: PASSWORD,
-    host: "localhost",
-    port,
-  }
-
-  const promise = createDb(databaseName, dbConfig).then(() => {
-    return migrate(dbConfig, "src/__tests__/fixtures/js-no-generate-sql")
-  })
-
-  return t.throws(promise).then(err => {
-    t.regex(err.message, /export a 'generateSql' function/)
   })
 })
 
