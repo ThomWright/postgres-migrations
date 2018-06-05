@@ -19,14 +19,14 @@ const hashString = string =>
     .update(string, "utf8")
     .digest("hex")
 
-const getSqlStringLiteral = (filePath, contents, type) => {
+const getSqlStringLiteral = async (filePath, contents, type) => {
   let result
   switch (type) {
     case "sql":
       result = contents
       break
     case "js":
-      result = dedent(loadSqlFromJs(filePath))
+      result = dedent(await loadSqlFromJs(filePath))
       break
     default:
       result = null
@@ -42,7 +42,7 @@ module.exports.load = async filePath => {
     const {id, name, type} = fileNameParser(fileName)
     const contents = await getFileContents(filePath)
     const hash = hashString(fileName + contents)
-    const sql = getSqlStringLiteral(filePath, contents, type)
+    const sql = await getSqlStringLiteral(filePath, contents, type)
 
     return {
       id,
