@@ -10,6 +10,7 @@ const readFile = promisify(require("fs").readFile)
 
 let normalSqlFile
 let normalJsFile
+let asyncJsFile
 let noTransactionSqlFile
 
 test.before(() => {
@@ -24,8 +25,12 @@ test.before(() => {
       },
     ),
 
-    Promise.resolve().then(() => {
-      normalJsFile = loadSqlFromJs(__dirname + "/fixtures/normal.sql.js")
+    loadSqlFromJs(__dirname + "/fixtures/normal.sql.js").then(contents => {
+      normalJsFile = contents
+    }),
+
+    loadSqlFromJs(__dirname + "/fixtures/async.sql.js").then(contents => {
+      asyncJsFile = contents
     }),
   ])
 })
@@ -75,6 +80,36 @@ test("runs a simple js migration", t => {
   const run = runMigration(migrationTableName, {query})
 
   const migration = buildMigration(normalJsFile)
+
+  return run(migration).then(() => {
+    t.is(query.callCount, 4)
+    t.is(
+      query.firstCall.args[0],
+      "START TRANSACTION",
+      "should begin a transaction",
+    )
+
+    t.is(
+      query.secondCall.args[0],
+      migration.sql,
+      "should execute the migration",
+    )
+
+    t.deepEqual(
+      query.thirdCall.args[0].values,
+      [migration.id, migration.name, migration.hash],
+      "should record the running of the migration in the database",
+    )
+
+    t.is(query.lastCall.args[0], "COMMIT", "should complete the transaction")
+  })
+})
+
+test("runs an async js migration", t => {
+  const query = sinon.stub().resolves()
+  const run = runMigration(migrationTableName, {query})
+
+  const migration = buildMigration(asyncJsFile)
 
   return run(migration).then(() => {
     t.is(query.callCount, 4)
