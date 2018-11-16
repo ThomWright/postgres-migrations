@@ -37,9 +37,9 @@
   },
   "dependencies": {
     "dedent-js": "^1.0.1",
-    "pg": "^7.1.2",
+    "pg": "^7.6.1",
     "pgtools": "^0.3",
-    "prettier": "^1.12.1",
+    "prettier": "^1.15.2",
     "sql-template-strings": "^2.2.2"
   },
   "devDependencies": {
