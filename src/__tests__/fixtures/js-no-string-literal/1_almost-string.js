@@ -1,3 +1,4 @@
 module.exports.generateSql = () => {
-  return String("I want to run!!")
+  // eslint-disable-next-line no-new-wrappers
+  return new String("I want to run!!")
 }
