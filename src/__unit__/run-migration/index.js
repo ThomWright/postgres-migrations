@@ -1,7 +1,6 @@
 const {promisify} = require("util")
 const test = require("ava")
 const sinon = require("sinon")
-require("sinon-as-promised")
 
 const runMigration = require("../../run-migration")
 const loadSqlFromJs = require("../../load-sql-from-js")

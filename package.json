@@ -47,8 +47,7 @@
     "ava": "^0.25.0",
     "eslint": "^5.9.0",
     "husky": "^1.1.4",
-    "sinon": "^1.17.0",
-    "sinon-as-promised": "^4.0.3"
+    "sinon": "^7.1.1"
   },
   "husky": {
     "hooks": {
