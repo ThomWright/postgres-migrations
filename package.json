@@ -44,9 +44,9 @@
     "sql-template-strings": "^2.2.2"
   },
   "devDependencies": {
-    "@mft/eslint-config-momentumft": "^2.1.0",
+    "@mft/eslint-config-momentumft": "^4.0.0",
     "ava": "^0.25.0",
-    "eslint": "^3.9.1",
+    "eslint": "^5.9.0",
     "husky": "^0.11.9",
     "sinon": "^1.17.0",
     "sinon-as-promised": "^4.0.3"
