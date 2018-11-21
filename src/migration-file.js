@@ -41,8 +41,8 @@ module.exports.load = async filePath => {
   try {
     const {id, name, type} = fileNameParser(fileName)
     const contents = await getFileContents(filePath)
-    const hash = hashString(fileName + contents)
     const sql = await getSqlStringLiteral(filePath, contents, type)
+    const hash = hashString(fileName + sql)
 
     return {
       id,

@@ -27,6 +27,7 @@ module.exports = async function migrate(
   return runMigrations(dbConfig, migrationsDirectory, config)
 }
 
+// eslint-disable-next-line max-statements
 async function runMigrations(dbConfig, migrationsDirectory, config) {
   const log = config.logger || (() => {})
 
@@ -119,11 +120,10 @@ function validateMigrations(migrations, appliedMigrations) {
   const invalidHashes = migrations.filter(invalidHash)
   if (invalidHashes.length) {
     // Someone has altered one or more migrations which has already run - gasp!
+    const invalidFiles = invalidHashes.map(({fileName}) => fileName)
     throw new Error(dedent`
-          Hashes don't match for migrations '${invalidHashes.map(
-            ({fileName}) => fileName,
-          )}'.
-          This means that the scripts have changed since it was applied.`)
+Hashes don't match for migrations '${invalidFiles}'.
+This means that the scripts have changed since it was applied.`)
   }
 }
 

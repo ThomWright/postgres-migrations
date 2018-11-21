@@ -16,9 +16,9 @@ module.exports = (containerName, t) => {
       "event=health_status",
     ])
     events.stdout.on("data", data => {
-      data = data.toString()
+      const dataString = data.toString()
 
-      if (data.includes("health_status: healthy")) {
+      if (dataString.includes("health_status: healthy")) {
         events.kill()
 
         t.end()

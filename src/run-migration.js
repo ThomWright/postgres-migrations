@@ -50,13 +50,12 @@ module.exports = (
     try {
       await cleanup()
     } finally {
+      // eslint-disable-next-line no-unsafe-finally
       throw new Error(
         dedent`
-              An error occurred running '${
-                migration.name
-              }'. Rolled back this migration.
-              No further migrations were run.
-              Reason: ${err.message}`,
+An error occurred running '${migration.name}'. Rolled back this migration.
+No further migrations were run.
+Reason: ${err.message}`,
       )
     }
   }
