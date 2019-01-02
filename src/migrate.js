@@ -89,7 +89,9 @@ async function fetchAppliedMigrationFromDB(migrationTableName, client, log) {
         Migrations table with name '${migrationTableName}' exists,
         filtering not applied migrations.`)
 
-    const {rows} = await client.query(`SELECT * FROM ${migrationTableName}`)
+    const {rows} = await client.query(
+      `SELECT * FROM ${migrationTableName} ORDER BY id`,
+    )
     appliedMigrations = rows
   } else {
     log(dedent`
