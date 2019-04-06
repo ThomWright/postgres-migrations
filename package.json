@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@mft/eslint-config-momentumft": "^4.0.0",
-    "ava": "^0.25.0",
+    "ava": "^1.4.1",
     "eslint": "^5.9.0",
     "fit-commit-js": "^0.3.2",
     "husky": "^1.1.4",
