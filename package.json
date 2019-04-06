@@ -35,6 +35,13 @@
     "test": "npm run test-unit && npm run lint && npm run test-integration",
     "preversion": "npm test"
   },
+  "husky": {
+    "hooks": {
+      "commit-msg": "node ./node_modules/fit-commit-js/lib/hook.js .git/COMMIT_EDITMSG",
+      "pre-commit": "npm run lint",
+      "pre-push": "npm test"
+    }
+  },
   "dependencies": {
     "dedent-js": "^1.0.1",
     "pg": "^7.9.0",
@@ -45,13 +52,9 @@
     "@mft/eslint-config-momentumft": "^4.0.0",
     "ava": "^0.25.0",
     "eslint": "^5.9.0",
+    "fit-commit-js": "^0.3.2",
     "husky": "^1.1.4",
     "prettier": "^1.16.4",
     "sinon": "^7.1.1"
-  },
-  "husky": {
-    "hooks": {
-      "pre-push": "npm test"
-    }
   }
 }

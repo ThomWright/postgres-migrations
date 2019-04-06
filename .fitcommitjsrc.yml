@@ -1,0 +1,22 @@
+---
+validators:
+  lineLength:
+    enabled: true
+    maxLineLength: 72
+    subjectMaxLength: 50
+  ticketCode:
+    enabled: false
+  emptyLines:
+    enabled: true
+    emptyLines: 1
+  tags:
+    enabled: false
+  subjectTense:
+    enabled: true
+  subjectPeriod:
+    enabled: false
+  capitalizedSubject:
+    # to allow npm version commits e.g. 1.0.0
+    enabled: false
+  wip:
+    enabled: true
