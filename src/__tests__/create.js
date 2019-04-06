@@ -10,7 +10,7 @@ const PASSWORD = startPostgres.PASSWORD
 
 let port
 
-test.cb.before(t => {
+test.before.cb(t => {
   port = startPostgres(CONTAINER_NAME, t)
 })
 
@@ -27,7 +27,7 @@ test("successful creation", t => {
 
 test("bad arguments - no database name", t => {
   return t
-    .throws(
+    .throwsAsync(
       createDb({
         user: "postgres",
         password: PASSWORD,
@@ -41,14 +41,14 @@ test("bad arguments - no database name", t => {
 })
 
 test("bad arguments - empty db config", t => {
-  return t.throws(createDb("create-test-no-config", {})).then(err => {
+  return t.throwsAsync(createDb("create-test-no-config", {})).then(err => {
     t.regex(err.message, /config/)
   })
 })
 
 test("bad arguments - incorrect user", t => {
   return t
-    .throws(
+    .throwsAsync(
       createDb("create-test-user", {
         user: "nobody",
         password: PASSWORD,
@@ -63,7 +63,7 @@ test("bad arguments - incorrect user", t => {
 
 test("bad arguments - incorrect password", t => {
   return t
-    .throws(
+    .throwsAsync(
       createDb("create-test-password", {
         user: "postgres",
         password: "not_the_password",
@@ -78,7 +78,7 @@ test("bad arguments - incorrect password", t => {
 
 test("bad arguments - incorrect host", t => {
   return t
-    .throws(
+    .throwsAsync(
       createDb("create-test-host", {
         user: "postgres",
         password: PASSWORD,
@@ -93,7 +93,7 @@ test("bad arguments - incorrect host", t => {
 
 test("bad arguments - incorrect port", t => {
   return t
-    .throws(
+    .throwsAsync(
       createDb("create-test-port", {
         user: "postgres",
         password: PASSWORD,

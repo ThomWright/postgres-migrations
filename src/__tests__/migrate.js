@@ -17,7 +17,7 @@ process.on("uncaughtException", function(err) {
   console.log(err)
 })
 
-test.cb.before(t => {
+test.before.cb(t => {
   port = startPostgres(CONTAINER_NAME, t)
 })
 
@@ -116,14 +116,14 @@ test("successful complex js migration", t => {
 })
 
 test("bad arguments - no db config", t => {
-  return t.throws(migrate()).then(err => {
+  return t.throwsAsync(migrate()).then(err => {
     t.regex(err.message, /config/)
   })
 })
 
 test("bad arguments - no migrations directory argument", t => {
   return t
-    .throws(
+    .throwsAsync(
       migrate({
         database: "migration-test-args",
         user: "postgres",
@@ -139,7 +139,7 @@ test("bad arguments - no migrations directory argument", t => {
 
 test("bad arguments - incorrect user", t => {
   return t
-    .throws(
+    .throwsAsync(
       migrate(
         {
           database: "migration-test-args",
@@ -158,7 +158,7 @@ test("bad arguments - incorrect user", t => {
 
 test("bad arguments - incorrect password", t => {
   return t
-    .throws(
+    .throwsAsync(
       migrate(
         {
           database: "migration-test-args",
@@ -177,7 +177,7 @@ test("bad arguments - incorrect password", t => {
 
 test("bad arguments - incorrect host", t => {
   return t
-    .throws(
+    .throwsAsync(
       migrate(
         {
           database: "migration-test-args",
@@ -196,7 +196,7 @@ test("bad arguments - incorrect host", t => {
 
 test("bad arguments - incorrect port", t => {
   return t
-    .throws(
+    .throwsAsync(
       migrate(
         {
           database: "migration-test-args",
@@ -215,7 +215,7 @@ test("bad arguments - incorrect port", t => {
 
 test("no database", t => {
   return t
-    .throws(
+    .throwsAsync(
       migrate(
         {
           database: "migration-test-no-database",
@@ -249,7 +249,7 @@ test("no migrations dir", t => {
     return migrate(dbConfig, "some/path")
   })
 
-  return t.throws(promise).then(err => {
+  return t.throwsAsync(promise).then(err => {
     t.regex(err.message, /some\/path/)
   })
 })
@@ -284,7 +284,7 @@ test("non-consecutive ordering", t => {
     return migrate(dbConfig, "src/__tests__/fixtures/non-consecutive")
   })
 
-  return t.throws(promise).then(err => {
+  return t.throwsAsync(promise).then(err => {
     t.regex(err.message, /Found a non-consecutive migration ID/)
   })
 })
@@ -303,7 +303,7 @@ test("not starting from one", t => {
     return migrate(dbConfig, "src/__tests__/fixtures/start-from-2")
   })
 
-  return t.throws(promise).then(err => {
+  return t.throwsAsync(promise).then(err => {
     t.regex(err.message, /Found a non-consecutive migration ID/)
   })
 })
@@ -322,7 +322,7 @@ test("negative ID", t => {
     return migrate(dbConfig, "src/__tests__/fixtures/negative")
   })
 
-  return t.throws(promise).then(err => {
+  return t.throwsAsync(promise).then(err => {
     t.regex(err.message, /Found a non-consecutive migration ID/)
     t.regex(err.message, /-1_negative/, "Should name the problem file")
   })
@@ -342,7 +342,7 @@ test("invalid file name", t => {
     return migrate(dbConfig, "src/__tests__/fixtures/invalid-file-name")
   })
 
-  return t.throws(promise).then(err => {
+  return t.throwsAsync(promise).then(err => {
     t.regex(err.message, /Invalid file name/)
     t.regex(err.message, /migrate-this/, "Should name the problem file")
   })
@@ -362,7 +362,7 @@ test("syntax error", t => {
     return migrate(dbConfig, "src/__tests__/fixtures/syntax-error")
   })
 
-  return t.throws(promise).then(err => {
+  return t.throwsAsync(promise).then(err => {
     t.regex(err.message, /syntax error/)
   })
 })
@@ -381,7 +381,7 @@ test("bad javascript file - no generateSql method exported", t => {
     return migrate(dbConfig, "src/__tests__/fixtures/js-no-generate-sql")
   })
 
-  return t.throws(promise).then(err => {
+  return t.throwsAsync(promise).then(err => {
     t.regex(err.message, /export a 'generateSql' function/)
   })
 })
@@ -400,7 +400,7 @@ test("bad javascript file - generateSql not returning string literal", t => {
     return migrate(dbConfig, "src/__tests__/fixtures/js-no-string-literal")
   })
 
-  return t.throws(promise).then(err => {
+  return t.throwsAsync(promise).then(err => {
     t.regex(err.message, /string literal/)
   })
 })
@@ -423,7 +423,7 @@ test("hash check failure", t => {
       migrate(dbConfig, "src/__tests__/fixtures/hash-check/second-run"),
     )
 
-  return t.throws(promise).then(err => {
+  return t.throwsAsync(promise).then(err => {
     t.regex(err.message, /Hashes don't match/)
     t.regex(err.message, /1_migration/, "Should name the problem file")
   })
@@ -444,7 +444,7 @@ test("rollback", t => {
   )
 
   return t
-    .throws(promise)
+    .throwsAsync(promise)
     .then(err => {
       t.regex(err.message, /Rolled back/)
       t.regex(err.message, /trigger-rollback/)
