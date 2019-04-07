@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "plugins": [
+      {"name": "typescript-tslint-plugin"}
+    ],
+    "typeRoots": ["./typings", "./node_modules/@types"],
+    "outDir": "./dist",
+    "target": "es2017",
+    "declaration": true,
+    "module": "commonjs",
+    "lib": ["es2017"],
+    "noUnusedLocals": true,
+    "noErrorTruncation": true,
+    "pretty": true,
+    "strict": true
+  }
+}

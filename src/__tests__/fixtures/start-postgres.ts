@@ -1,10 +1,11 @@
-const {execSync, spawn} = require("child_process")
+import {CbExecutionContext} from "ava"
+import {execSync, spawn} from "child_process"
 
-const PASSWORD = "mysecretpassword"
+export const PASSWORD = "mysecretpassword"
 
 const HEALTH_CHECK_CMD = `'export PGPASSWORD=${PASSWORD}; HOST=$(hostname --ip-address); echo "SELECT 1" | psql --host=$HOST -U postgres -q -t -A'`
 
-module.exports = (containerName, t) => {
+export const startPostgres = (containerName: string, t: CbExecutionContext) => {
   try {
     const events = spawn("docker", [
       "events",
@@ -27,7 +28,7 @@ module.exports = (containerName, t) => {
     events.on("error", err => {
       console.error("Error in 'docker events' process:", err)
       events.kill()
-      t.fail(err)
+      t.fail(err.message)
     })
 
     execSync(`docker run --detach --publish-all  \
@@ -47,5 +48,3 @@ module.exports = (containerName, t) => {
     throw error
   }
 }
-
-module.exports.PASSWORD = PASSWORD

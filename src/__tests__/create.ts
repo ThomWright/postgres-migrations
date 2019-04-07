@@ -1,14 +1,11 @@
-const test = require("ava")
-const {execSync} = require("child_process")
-
-const startPostgres = require("./fixtures/start-postgres")
-
-const createDb = require("../create")
+import test from "ava"
+import {execSync} from "child_process"
+import {createDb} from "../"
+import {PASSWORD, startPostgres} from "./fixtures/start-postgres"
 
 const CONTAINER_NAME = "pg-migrations-test-create"
-const PASSWORD = startPostgres.PASSWORD
 
-let port
+let port: number
 
 test.before.cb(t => {
   port = startPostgres(CONTAINER_NAME, t)
@@ -28,7 +25,7 @@ test("successful creation", t => {
 test("bad arguments - no database name", t => {
   return t
     .throwsAsync(
-      createDb({
+      (createDb as any)({
         user: "postgres",
         password: PASSWORD,
         host: "localhost",
@@ -41,9 +38,11 @@ test("bad arguments - no database name", t => {
 })
 
 test("bad arguments - empty db config", t => {
-  return t.throwsAsync(createDb("create-test-no-config", {})).then(err => {
-    t.regex(err.message, /config/)
-  })
+  return t
+    .throwsAsync(createDb("create-test-no-config", {} as any))
+    .then(err => {
+      t.regex(err.message, /config/)
+    })
 })
 
 test("bad arguments - incorrect user", t => {
@@ -128,7 +127,7 @@ test("database name included in config", t => {
       password: PASSWORD,
       host: "localhost",
       port,
-    })
+    } as any)
 
   return create().then(create)
 })
