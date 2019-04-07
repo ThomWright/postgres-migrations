@@ -1,17 +1,24 @@
-const pg = require("pg")
-const SQL = require("sql-template-strings")
-const dedent = require("dedent-js")
+import * as pg from "pg"
+import SQL from "sql-template-strings"
+import dedent = require("dedent-js")
 
-const runMigration = require("./run-migration")
-const filesLoader = require("./files-loader")
+import {runMigration} from "./run-migration"
+import {load} from "./files-loader"
+import {
+  MigrateDBConfig,
+  Config,
+  MigrationError,
+  Logger,
+  Migration,
+} from "./types"
 
-module.exports = async function migrate(
-  dbConfig = {},
-  migrationsDirectory,
-  config = {},
+export async function migrate(
+  dbConfig: MigrateDBConfig,
+  migrationsDirectory: string,
+  config?: Config,
 ) {
-  // eslint-disable-line complexity
   if (
+    dbConfig == null ||
     typeof dbConfig.database !== "string" ||
     typeof dbConfig.user !== "string" ||
     typeof dbConfig.password !== "string" ||
@@ -27,9 +34,17 @@ module.exports = async function migrate(
   return runMigrations(dbConfig, migrationsDirectory, config)
 }
 
-// eslint-disable-next-line max-statements
-async function runMigrations(dbConfig, migrationsDirectory, config) {
-  const log = config.logger || (() => {})
+async function runMigrations(
+  dbConfig: MigrateDBConfig,
+  migrationsDirectory: string,
+  config: Config = {},
+) {
+  const log: Logger =
+    config.logger != null
+      ? config.logger
+      : () => {
+          //
+        }
 
   const migrationTableName = "migrations"
 
@@ -45,7 +60,7 @@ async function runMigrations(dbConfig, migrationsDirectory, config) {
     await client.connect()
     log("Connected to database")
 
-    const migrations = await filesLoader.load(migrationsDirectory, log)
+    const migrations = await load(migrationsDirectory, log)
 
     const appliedMigrations = await fetchAppliedMigrationFromDB(
       migrationTableName,
@@ -70,19 +85,27 @@ async function runMigrations(dbConfig, migrationsDirectory, config) {
 
     return completedMigrations
   } catch (err) {
-    const error = new Error(`Migration failed. Reason: ${err.message}`)
+    const error: MigrationError = new Error(
+      `Migration failed. Reason: ${err.message}`,
+    )
     error.cause = err
     throw error
   } finally {
     // always try to close the connection
     try {
       await client.end()
-    } catch (e) {} // eslint-disable-line
+    } catch (e) {
+      log(`Error closing the connetion: ${e.message}`)
+    }
   }
 }
 
 // Queries the database for migrations table and retrieve it rows if exists
-async function fetchAppliedMigrationFromDB(migrationTableName, client, log) {
+async function fetchAppliedMigrationFromDB(
+  migrationTableName: string,
+  client: pg.Client,
+  log: Logger,
+) {
   let appliedMigrations = []
   if (await doesTableExist(client, migrationTableName)) {
     log(dedent`
@@ -102,11 +125,16 @@ async function fetchAppliedMigrationFromDB(migrationTableName, client, log) {
 }
 
 // Validates mutation order and hash
-function validateMigrations(migrations, appliedMigrations) {
-  const indexNotMatch = (migration, index) => migration.id !== index
-  const invalidHash = migration =>
-    appliedMigrations[migration.id] &&
-    appliedMigrations[migration.id].hash !== migration.hash
+function validateMigrations(
+  migrations: Array<Migration>,
+  appliedMigrations: Record<number, Migration | undefined>,
+) {
+  const indexNotMatch = (migration: Migration, index: number) =>
+    migration.id !== index
+  const invalidHash = (migration: Migration) => {
+    const appliedMigration = appliedMigrations[migration.id]
+    return appliedMigration != null && appliedMigration.hash !== migration.hash
+  }
 
   // Assert migration IDs are consecutive integers
   const notMatchingId = migrations.find(indexNotMatch)
@@ -120,7 +148,7 @@ function validateMigrations(migrations, appliedMigrations) {
 
   // Assert migration hashes are still same
   const invalidHashes = migrations.filter(invalidHash)
-  if (invalidHashes.length) {
+  if (invalidHashes.length > 0) {
     // Someone has altered one or more migrations which has already run - gasp!
     const invalidFiles = invalidHashes.map(({fileName}) => fileName)
     throw new Error(dedent`
@@ -130,14 +158,18 @@ This means that the scripts have changed since it was applied.`)
 }
 
 // Work out which migrations to apply
-function filterMigrations(migrations, appliedMigrations) {
-  const notAppliedMigration = migration => !appliedMigrations[migration.id]
+function filterMigrations(
+  migrations: Array<Migration>,
+  appliedMigrations: Record<number, Migration | undefined>,
+) {
+  const notAppliedMigration = (migration: Migration) =>
+    !appliedMigrations[migration.id]
 
   return migrations.filter(notAppliedMigration)
 }
 
 // Logs the result
-function logResult(completedMigrations, log) {
+function logResult(completedMigrations: Array<Migration>, log: Logger) {
   if (completedMigrations.length === 0) {
     log("No migrations applied")
   } else {
@@ -150,7 +182,7 @@ function logResult(completedMigrations, log) {
 }
 
 // Check whether table exists in postgres - http://stackoverflow.com/a/24089729
-async function doesTableExist(client, tableName) {
+async function doesTableExist(client: pg.Client, tableName: string) {
   const result = await client.query(SQL`
       SELECT EXISTS (
         SELECT 1

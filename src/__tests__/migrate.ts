@@ -1,17 +1,13 @@
-const test = require("ava")
-const {execSync} = require("child_process")
-const pg = require("pg")
-const SQL = require("sql-template-strings")
-
-const startPostgres = require("./fixtures/start-postgres")
-
-const createDb = require("../create")
-const migrate = require("../migrate")
+import test from "ava"
+import {execSync} from "child_process"
+import * as pg from "pg"
+import SQL from "sql-template-strings"
+import {createDb, migrate} from "../"
+import {PASSWORD, startPostgres} from "./fixtures/start-postgres"
 
 const CONTAINER_NAME = "pg-migrations-test-migrate"
-const PASSWORD = startPostgres.PASSWORD
 
-let port
+let port: number
 
 process.on("uncaughtException", function(err) {
   console.log(err)
@@ -116,7 +112,7 @@ test("successful complex js migration", t => {
 })
 
 test("bad arguments - no db config", t => {
-  return t.throwsAsync(migrate()).then(err => {
+  return t.throwsAsync((migrate as any)()).then(err => {
     t.regex(err.message, /config/)
   })
 })
@@ -124,7 +120,7 @@ test("bad arguments - no db config", t => {
 test("bad arguments - no migrations directory argument", t => {
   return t
     .throwsAsync(
-      migrate({
+      (migrate as any)({
         database: "migration-test-args",
         user: "postgres",
         password: PASSWORD,
@@ -254,7 +250,7 @@ test("no migrations dir", t => {
   })
 })
 
-test("empty migrations dir", t => {
+test("empty migrations dir", async t => {
   t.plan(0)
   const databaseName = "migration-test-empty-dir"
   const dbConfig = {
@@ -265,7 +261,7 @@ test("empty migrations dir", t => {
     port,
   }
 
-  return createDb(databaseName, dbConfig).then(() => {
+  await createDb(databaseName, dbConfig).then(() => {
     return migrate(dbConfig, "src/__tests__/fixtures/empty")
   })
 })
@@ -467,7 +463,7 @@ test.after.always(() => {
   }
 })
 
-function doesTableExist(dbConfig, tableName) {
+function doesTableExist(dbConfig: pg.ClientConfig, tableName: string) {
   const client = new pg.Client(dbConfig)
   client.on("error", err => console.log("doesTableExist on error", err))
   return client

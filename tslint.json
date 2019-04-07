@@ -1,0 +1,42 @@
+{
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended", "tslint-config-prettier"],
+  "rules": {
+    "interface-name": false,
+    "object-literal-sort-keys": false,
+    "ordered-imports": false,
+    "no-unused-expression": false,
+    "only-arrow-functions": false,
+    "array-type": [true, "generic"],
+    "no-any": {
+      "severity": "warning"
+    },
+    "no-var-requires": {
+      "severity": "warning"
+    },
+    "no-console": {
+      "severity": "warning"
+    },
+    "no-switch-case-fall-through": true,
+    "callable-types": {
+      "severity": "warning"
+    },
+    "strict-boolean-expressions": [
+      true,
+      "allow-null-union",
+      "allow-undefined-union"
+    ],
+    "no-unnecessary-initializer": false,
+    "no-implicit-dependencies": [true, "dev"],
+    "no-return-await": true,
+    "no-floating-promises": true,
+    "no-string-throw": true,
+    "no-this-assignment": true,
+    "no-unnecessary-class": true,
+    "no-unsafe-finally": true,
+    "radix": true,
+    "switch-default": true,
+    "restrict-plus-operands": true,
+    "no-invalid-template-strings": true
+  }
+}

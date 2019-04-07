@@ -1,8 +1,16 @@
-const SQL = require("sql-template-strings")
-const dedent = require("dedent-js")
+import {Client} from "pg"
+import SQL from "sql-template-strings"
+import {Logger, Migration} from "./types"
 
-const noop = () => {}
-const insertMigration = async (migrationTableName, client, migration, log) => {
+const noop = () => {
+  //
+}
+const insertMigration = async (
+  migrationTableName: string,
+  client: Pick<Client, "query">,
+  migration: Migration,
+  log: Logger,
+) => {
   log(
     `Saving migration to '${migrationTableName}': ${migration.id} | ${
       migration.name
@@ -22,11 +30,11 @@ const insertMigration = async (migrationTableName, client, migration, log) => {
   return client.query(sql)
 }
 
-module.exports = (
-  migrationTableName,
-  client,
-  log = noop,
-) => async migration => {
+export const runMigration = (
+  migrationTableName: string,
+  client: Pick<Client, "query">,
+  log: Logger = noop,
+) => async (migration: Migration) => {
   const inTransaction =
     migration.sql.includes("-- postgres-migrations disable-transaction") ===
     false
@@ -49,14 +57,12 @@ module.exports = (
   } catch (err) {
     try {
       await cleanup()
-    } finally {
-      // eslint-disable-next-line no-unsafe-finally
-      throw new Error(
-        dedent`
+    } catch {
+      //
+    }
+    throw new Error(`
 An error occurred running '${migration.name}'. Rolled back this migration.
 No further migrations were run.
-Reason: ${err.message}`,
-      )
-    }
+Reason: ${err.message}`)
   }
 }

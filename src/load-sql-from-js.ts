@@ -1,7 +1,7 @@
-const dedent = require("dedent-js")
-const path = require("path")
+import * as path from "path"
+import dedent = require("dedent-js")
 
-module.exports = filePath => {
+export const loadSqlFromJs = (filePath: string): string => {
   const migrationModule = require(filePath)
   if (!migrationModule.generateSql) {
     throw new Error(dedent`
