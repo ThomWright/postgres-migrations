@@ -1,11 +1,10 @@
-import dedent = require("dedent-js")
 import {FileType} from "./types"
 
 const parseId = (id: string) => {
   const parsed = parseInt(id, 10)
   if (isNaN(parsed)) {
-    throw new Error(dedent`
-      Migration file name should begin with an integer ID.'`)
+    throw new Error(`
+Migration file name should begin with an integer ID.'`)
   }
 
   return parsed
@@ -21,8 +20,8 @@ export const parseFileName = (fileName: string): FileInfo => {
   const result = /^(-?\d+)[-_]?(.*).(sql|js)$/gi.exec(fileName)
 
   if (!result) {
-    throw new Error(dedent`
-          Invalid file name: '${fileName}'.`)
+    throw new Error(`
+Invalid file name: '${fileName}'.`)
   }
 
   const [, id, name, type] = result

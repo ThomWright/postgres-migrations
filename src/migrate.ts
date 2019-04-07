@@ -1,6 +1,5 @@
 import * as pg from "pg"
 import SQL from "sql-template-strings"
-import dedent = require("dedent-js")
 
 import {runMigration} from "./run-migration"
 import {load} from "./files-loader"
@@ -108,18 +107,18 @@ async function fetchAppliedMigrationFromDB(
 ) {
   let appliedMigrations = []
   if (await doesTableExist(client, migrationTableName)) {
-    log(dedent`
-        Migrations table with name '${migrationTableName}' exists,
-        filtering not applied migrations.`)
+    log(`
+Migrations table with name '${migrationTableName}' exists,
+filtering not applied migrations.`)
 
     const {rows} = await client.query(
       `SELECT * FROM ${migrationTableName} ORDER BY id`,
     )
     appliedMigrations = rows
   } else {
-    log(dedent`
-        Migrations table with name '${migrationTableName}' hasn't been created,
-        so the database is new and we need to run all migrations.`)
+    log(`
+Migrations table with name '${migrationTableName}' hasn't been created,
+so the database is new and we need to run all migrations.`)
   }
   return appliedMigrations
 }
@@ -151,7 +150,7 @@ function validateMigrations(
   if (invalidHashes.length > 0) {
     // Someone has altered one or more migrations which has already run - gasp!
     const invalidFiles = invalidHashes.map(({fileName}) => fileName)
-    throw new Error(dedent`
+    throw new Error(`
 Hashes don't match for migrations '${invalidFiles}'.
 This means that the scripts have changed since it was applied.`)
   }
