@@ -1,3 +1,5 @@
+// tslint:disable no-console
+
 import test from "ava"
 import {execSync} from "child_process"
 import {createDb} from "../"
@@ -25,6 +27,7 @@ test("successful creation", t => {
 test("bad arguments - no database name", t => {
   return t
     .throwsAsync(
+      // tslint:disable-next-line no-any
       (createDb as any)({
         user: "postgres",
         password: PASSWORD,
@@ -38,11 +41,14 @@ test("bad arguments - no database name", t => {
 })
 
 test("bad arguments - empty db config", t => {
-  return t
-    .throwsAsync(createDb("create-test-no-config", {} as any))
-    .then(err => {
-      t.regex(err.message, /config/)
-    })
+  return (
+    t
+      // tslint:disable-next-line no-any
+      .throwsAsync(createDb("create-test-no-config", {} as any))
+      .then(err => {
+        t.regex(err.message, /config/)
+      })
+  )
 })
 
 test("bad arguments - incorrect user", t => {
@@ -127,6 +133,7 @@ test("database name included in config", t => {
       password: PASSWORD,
       host: "localhost",
       port,
+      // tslint:disable-next-line no-any
     } as any)
 
   return create().then(create)

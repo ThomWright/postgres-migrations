@@ -1,3 +1,4 @@
+// tslint:disable no-console
 import test from "ava"
 import {execSync} from "child_process"
 import * as pg from "pg"
@@ -112,6 +113,7 @@ test("successful complex js migration", t => {
 })
 
 test("bad arguments - no db config", t => {
+  // tslint:disable-next-line no-any
   return t.throwsAsync((migrate as any)()).then(err => {
     t.regex(err.message, /config/)
   })
@@ -120,6 +122,7 @@ test("bad arguments - no db config", t => {
 test("bad arguments - no migrations directory argument", t => {
   return t
     .throwsAsync(
+      // tslint:disable-next-line no-any
       (migrate as any)({
         database: "migration-test-args",
         user: "postgres",

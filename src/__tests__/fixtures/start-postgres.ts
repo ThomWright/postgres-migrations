@@ -1,3 +1,5 @@
+// tslint:disable no-console
+
 import {CbExecutionContext} from "ava"
 import {execSync, spawn} from "child_process"
 
