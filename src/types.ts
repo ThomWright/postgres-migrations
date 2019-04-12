@@ -23,8 +23,10 @@ export interface MigrateDBConfig extends BaseDBConfig {
 }
 
 export type Logger = (msg: string) => void
-export interface Config {
-  readonly logger?: Logger
+export type Config = Partial<FullConfig>
+
+export interface FullConfig {
+  readonly logger: Logger
 }
 
 export class MigrationError extends Error {

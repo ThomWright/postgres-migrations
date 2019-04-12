@@ -9,12 +9,13 @@ import {
   MigrationError,
   Logger,
   Migration,
+  FullConfig,
 } from "./types"
 
 export async function migrate(
   dbConfig: MigrateDBConfig,
   migrationsDirectory: string,
-  config?: Config,
+  config: Config = {},
 ) {
   if (
     dbConfig == null ||
@@ -30,22 +31,26 @@ export async function migrate(
     throw new Error("Must pass migrations directory as a string")
   }
 
-  return runMigrations(dbConfig, migrationsDirectory, config)
+  const fullConfig: FullConfig = {
+    logger:
+      config.logger != null
+        ? config.logger
+        : () => {
+            //
+          },
+  }
+
+  return loadAndRunMigrations(dbConfig, migrationsDirectory, fullConfig)
 }
 
-async function runMigrations(
+async function loadAndRunMigrations(
   dbConfig: MigrateDBConfig,
   migrationsDirectory: string,
-  config: Config = {},
-) {
-  const log: Logger =
-    config.logger != null
-      ? config.logger
-      : () => {
-          //
-        }
+  config: FullConfig,
+): Promise<Array<Migration>> {
+  const {logger: log} = config
 
-  const migrationTableName = "migrations"
+  const intendedMigrations = await load(migrationsDirectory, log)
 
   const client = new pg.Client(dbConfig)
 
@@ -55,51 +60,88 @@ async function runMigrations(
 
   log("Attempting database migration")
 
-  try {
-    await client.connect()
-    log("Connected to database")
+  const runWith = withConnection(
+    config,
+    runMigrations(intendedMigrations, config),
+  )
 
-    const migrations = await load(migrationsDirectory, log)
+  return runWith(client)
+}
 
-    const appliedMigrations = await fetchAppliedMigrationFromDB(
-      migrationTableName,
-      client,
-      log,
-    )
-
-    validateMigrations(migrations, appliedMigrations)
-
-    const filteredMigrations = filterMigrations(migrations, appliedMigrations)
-
-    const completedMigrations = []
-
-    for (const migration of filteredMigrations) {
-      const result = await runMigration(migrationTableName, client, log)(
-        migration,
-      )
-      completedMigrations.push(result)
-    }
-
-    logResult(completedMigrations, log)
-
-    return completedMigrations
-  } catch (err) {
-    const error: MigrationError = new Error(
-      `Migration failed. Reason: ${err.message}`,
-    )
-    error.cause = err
-    throw error
-  } finally {
-    // always try to close the connection
+function runMigrations(
+  intendedMigrations: Array<Migration>,
+  {logger: log}: FullConfig,
+): (client: pg.Client) => Promise<Array<Migration>> {
+  return async (client: pg.Client) => {
     try {
-      await client.end()
+      const migrationTableName = "migrations"
+
+      log("Will run migrations...")
+
+      const appliedMigrations = await fetchAppliedMigrationFromDB(
+        migrationTableName,
+        client,
+        log,
+      )
+
+      log(appliedMigrations.length.toString())
+
+      validateMigrations(intendedMigrations, appliedMigrations)
+
+      const migrationsToRun = filterMigrations(
+        intendedMigrations,
+        appliedMigrations,
+      )
+      const completedMigrations = []
+
+      for (const migration of migrationsToRun) {
+        const result = await runMigration(migrationTableName, client, log)(
+          migration,
+        )
+        completedMigrations.push(result)
+      }
+
+      logResult(completedMigrations, log)
+
+      return completedMigrations
     } catch (e) {
-      log(`Error closing the connetion: ${e.message}`)
+      const error: MigrationError = new Error(
+        `Migration failed. Reason: ${e.message}`,
+      )
+      error.cause = e
+      throw error
     }
   }
 }
 
-// Queries the database for migrations table and retrieve it rows if exists
+function withConnection<T>(
+  {logger: log}: FullConfig,
+  f: (client: pg.Client) => Promise<T>,
+): (client: pg.Client) => Promise<T> {
+  return async (client: pg.Client): Promise<T> => {
+    try {
+      try {
+        await client.connect()
+        log("Connected to database")
+      } catch (e) {
+        log(`Error connecting to database: ${e.message}`)
+        throw e
+      }
+
+      const result = await f(client)
+      return result
+    } finally {
+      // always try to close the connection
+      try {
+        await client.end()
+      } catch (e) {
+        log(`Error closing the connection: ${e.message}`)
+      }
+    }
+  }
+}
+
+/** Queries the database for migrations table and retrieve it rows if exists */
 async function fetchAppliedMigrationFromDB(
   migrationTableName: string,
   client: pg.Client,
@@ -123,7 +165,7 @@ so the database is new and we need to run all migrations.`)
   return appliedMigrations
 }
 
-// Validates mutation order and hash
+/** Validates mutation order and hash */
 function validateMigrations(
   migrations: Array<Migration>,
   appliedMigrations: Record<number, Migration | undefined>,
@@ -156,7 +198,7 @@ This means that the scripts have changed since it was applied.`)
   }
 }
 
-// Work out which migrations to apply
+/** Work out which migrations to apply */
 function filterMigrations(
   migrations: Array<Migration>,
   appliedMigrations: Record<number, Migration | undefined>,
@@ -167,7 +209,7 @@ function filterMigrations(
   return migrations.filter(notAppliedMigration)
 }
 
-// Logs the result
+/** Logs the result */
 function logResult(completedMigrations: Array<Migration>, log: Logger) {
   if (completedMigrations.length === 0) {
     log("No migrations applied")
@@ -180,7 +222,7 @@ function logResult(completedMigrations: Array<Migration>, log: Logger) {
   }
 }
 
-// Check whether table exists in postgres - http://stackoverflow.com/a/24089729
+/** Check whether table exists in postgres - http://stackoverflow.com/a/24089729 */
 async function doesTableExist(client: pg.Client, tableName: string) {
   const result = await client.query(SQL`
       SELECT EXISTS (

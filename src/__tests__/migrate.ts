@@ -147,7 +147,7 @@ test("bad arguments - incorrect user", t => {
           host: "localhost",
           port,
         },
-        "some/path",
+        "src/__tests__/fixtures/empty",
       ),
     )
     .then(err => {
@@ -166,7 +166,7 @@ test("bad arguments - incorrect password", t => {
           host: "localhost",
           port,
         },
-        "some/path",
+        "src/__tests__/fixtures/empty",
       ),
     )
     .then(err => {
@@ -185,7 +185,7 @@ test("bad arguments - incorrect host", t => {
           host: "sillyhost",
           port,
         },
-        "some/path",
+        "src/__tests__/fixtures/empty",
       ),
     )
     .then(err => {
@@ -204,7 +204,7 @@ test("bad arguments - incorrect port", t => {
           host: "localhost",
           port: 1234,
         },
-        "some/path",
+        "src/__tests__/fixtures/empty",
       ),
     )
     .then(err => {
@@ -223,7 +223,7 @@ test("no database", t => {
           host: "localhost",
           port,
         },
-        "some/path",
+        "src/__tests__/fixtures/empty",
       ),
     )
     .then(err => {
@@ -245,11 +245,11 @@ test("no migrations dir", t => {
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
-    return migrate(dbConfig, "some/path")
+    return migrate(dbConfig, "not/real/path")
   })
 
   return t.throwsAsync(promise).then(err => {
-    t.regex(err.message, /some\/path/)
+    t.regex(err.message, /not\/real\/path/)
   })
 })
 
