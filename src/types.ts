@@ -18,8 +18,16 @@ export interface CreateDBConfig extends BaseDBConfig {
   readonly defaultDatabase?: string
 }
 
+export interface SslConfig {
+  readonly rejectUnauthorized: boolean
+  readonly ca?: string
+  readonly key?: string
+  readonly cert?: string
+}
+
 export interface MigrateDBConfig extends BaseDBConfig {
   readonly database: string
+  readonly ssl?: SslConfig
 }
 
 export type Logger = (msg: string) => void
