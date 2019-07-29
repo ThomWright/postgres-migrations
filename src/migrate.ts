@@ -181,9 +181,7 @@ function validateMigrations(
   const notMatchingId = migrations.find(indexNotMatch)
   if (notMatchingId) {
     throw new Error(
-      `Found a non-consecutive migration ID on file: '${
-        notMatchingId.fileName
-      }'`,
+      `Found a non-consecutive migration ID on file: '${notMatchingId.fileName}'`,
     )
   }
 

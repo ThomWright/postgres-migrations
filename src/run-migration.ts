@@ -12,17 +12,13 @@ const insertMigration = async (
   log: Logger,
 ) => {
   log(
-    `Saving migration to '${migrationTableName}': ${migration.id} | ${
-      migration.name
-    } | ${migration.hash}`,
+    `Saving migration to '${migrationTableName}': ${migration.id} | ${migration.name} | ${migration.hash}`,
   )
 
   const sql = SQL`INSERT INTO `
     .append(migrationTableName)
     .append(
-      SQL` ("id", "name", "hash") VALUES (${migration.id},${migration.name},${
-        migration.hash
-      })`,
+      SQL` ("id", "name", "hash") VALUES (${migration.id},${migration.name},${migration.hash})`,
     )
 
   log(`Executing query: ${sql.text}:${sql.values}`)
