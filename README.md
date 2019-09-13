@@ -115,7 +115,7 @@ Example:
 migrations
 ├ 1_create-initial-tables.sql
 ├ 2-alter-initial-tables.SQL
-└ 3alter-initial-tables-again.js
+└ 3-alter-initial-tables-again.js
 ```
 
 Or, if you want better ordering in your filesystem:
