@@ -20,7 +20,8 @@ export async function createDb(
     typeof dbConfig.user !== "string" ||
     typeof dbConfig.password !== "string" ||
     typeof dbConfig.host !== "string" ||
-    typeof dbConfig.port !== "number"
+    typeof dbConfig.port !== "number" ||
+    typeof dbConfig.ssl !== "boolean"
   ) {
     throw new Error("Database config problem")
   }
@@ -33,7 +34,7 @@ async function create(
   dbConfig: CreateDBConfig,
   config: Config = {},
 ) {
-  const {user, password, host, port} = dbConfig
+  const {user, password, host, port, ssl} = dbConfig
 
   const log =
     config.logger != null
@@ -52,6 +53,7 @@ async function create(
     password,
     host,
     port,
+    ssl: ssl != null ? ssl : "false",
   }
 
   try {

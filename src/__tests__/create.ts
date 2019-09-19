@@ -21,6 +21,7 @@ test("successful creation", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   })
 })
 
@@ -33,6 +34,7 @@ test("bad arguments - no database name", t => {
         password: PASSWORD,
         host: "localhost",
         port,
+        ssl: false,
       }),
     )
     .then(err => {
@@ -59,6 +61,7 @@ test("bad arguments - incorrect user", t => {
         password: PASSWORD,
         host: "localhost",
         port,
+        ssl: false,
       }),
     )
     .then(err => {
@@ -74,6 +77,7 @@ test("bad arguments - incorrect password", t => {
         password: "not_the_password",
         host: "localhost",
         port,
+        ssl: false,
       }),
     )
     .then(err => {
@@ -89,6 +93,7 @@ test("bad arguments - incorrect host", t => {
         password: PASSWORD,
         host: "sillyhost",
         port,
+        ssl: false,
       }),
     )
     .then(err => {
@@ -104,6 +109,7 @@ test("bad arguments - incorrect port", t => {
         password: PASSWORD,
         host: "localhost",
         port: 1234,
+        ssl: false,
       }),
     )
     .then(err => {
@@ -119,6 +125,7 @@ test("already created", t => {
       password: PASSWORD,
       host: "localhost",
       port,
+      ssl: false,
     })
 
   return create().then(create)
@@ -133,6 +140,7 @@ test("database name included in config", t => {
       password: PASSWORD,
       host: "localhost",
       port,
+      ssl: false,
       // tslint:disable-next-line no-any
     } as any)
 
@@ -148,6 +156,7 @@ test("custom default database name", t => {
       password: PASSWORD,
       host: "localhost",
       port,
+      ssl: false,
     })
 
   return create().then(create)

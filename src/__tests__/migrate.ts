@@ -26,6 +26,7 @@ test("successful first migration", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   return createDb(databaseName, dbConfig)
@@ -44,6 +45,7 @@ test("successful second migration", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   return createDb(databaseName, dbConfig)
@@ -63,6 +65,7 @@ test("successful first javascript migration", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   return createDb(databaseName, dbConfig)
@@ -81,6 +84,7 @@ test("successful second mixed js and sql migration", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   return createDb(databaseName, dbConfig)
@@ -102,6 +106,7 @@ test("successful complex js migration", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   return createDb(databaseName, dbConfig)
@@ -129,6 +134,7 @@ test("bad arguments - no migrations directory argument", t => {
         password: PASSWORD,
         host: "localhost",
         port,
+        ssl: false,
       }),
     )
     .then(err => {
@@ -146,6 +152,7 @@ test("bad arguments - incorrect user", t => {
           password: PASSWORD,
           host: "localhost",
           port,
+          ssl: false,
         },
         "src/__tests__/fixtures/empty",
       ),
@@ -165,6 +172,7 @@ test("bad arguments - incorrect password", t => {
           password: "not_the_password",
           host: "localhost",
           port,
+          ssl: false,
         },
         "src/__tests__/fixtures/empty",
       ),
@@ -184,6 +192,7 @@ test("bad arguments - incorrect host", t => {
           password: PASSWORD,
           host: "sillyhost",
           port,
+          ssl: false,
         },
         "src/__tests__/fixtures/empty",
       ),
@@ -203,6 +212,7 @@ test("bad arguments - incorrect port", t => {
           password: PASSWORD,
           host: "localhost",
           port: 1234,
+          ssl: false,
         },
         "src/__tests__/fixtures/empty",
       ),
@@ -222,6 +232,7 @@ test("no database", t => {
           password: PASSWORD,
           host: "localhost",
           port,
+          ssl: false,
         },
         "src/__tests__/fixtures/empty",
       ),
@@ -242,6 +253,7 @@ test("no migrations dir", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
@@ -262,6 +274,7 @@ test("empty migrations dir", async t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   await createDb(databaseName, dbConfig).then(() => {
@@ -277,6 +290,7 @@ test("non-consecutive ordering", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
@@ -296,6 +310,7 @@ test("not starting from one", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
@@ -315,6 +330,7 @@ test("negative ID", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
@@ -335,6 +351,7 @@ test("invalid file name", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
@@ -355,6 +372,7 @@ test("syntax error", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
@@ -374,6 +392,7 @@ test("bad javascript file - no generateSql method exported", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
@@ -393,6 +412,7 @@ test("bad javascript file - generateSql not returning string literal", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   const promise = createDb(databaseName, dbConfig).then(() => {
@@ -412,6 +432,7 @@ test("hash check failure", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   const promise = createDb(databaseName, dbConfig)
@@ -436,6 +457,7 @@ test("rollback", t => {
     password: PASSWORD,
     host: "localhost",
     port,
+    ssl: false,
   }
 
   const promise = createDb(databaseName, dbConfig).then(() =>

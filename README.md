@@ -11,6 +11,8 @@ Requires Node 8.9.3+
 
 Supports PostgreSQL 9.4+
 
+Supports SSL
+
 ## API
 
 ```js
@@ -22,6 +24,7 @@ createDb("database-name", {
   password: "password",
   host: "localhost",
   port: 5432,
+  ssl: true, //optional, defaults: false
 })
 .then(() => {
   return migrate({
@@ -30,6 +33,7 @@ createDb("database-name", {
     password: "password",
     host: "localhost",
     port: 5432,
+    ssl: true,
   }, "path/to/migration/files")
 })
 .then(() => {/* ... */})
