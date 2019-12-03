@@ -190,11 +190,17 @@ function logResult(completedMigrations: Array<Migration>, log: Logger) {
 }
 
 /** Check whether table exists in postgres - http://stackoverflow.com/a/24089729 */
-async function doesTableExist(client: BasicPgClient, tableName: string) {
+async function doesTableExist(
+  client: BasicPgClient,
+  tableName: string,
+  schema = "public",
+) {
   const result = await client.query(SQL`SELECT EXISTS (
   SELECT 1
   FROM   pg_catalog.pg_class c
-  WHERE  c.relname = ${tableName}
+  JOIN   pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+  WHERE  n.nspname = ${schema}
+  AND    c.relname = ${tableName}
   AND    c.relkind = 'r'
 );`)
 
