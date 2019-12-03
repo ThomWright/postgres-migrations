@@ -75,11 +75,13 @@ function runMigrations(
   return async (client: pg.Client) => {
     try {
       const migrationTableName = "migrations"
+      const schema = "public"
 
       log("Will run migrations...")
 
       const appliedMigrations = await fetchAppliedMigrationFromDB(
         migrationTableName,
+        schema,
         client,
         log,
       )
@@ -144,11 +146,12 @@ function withConnection<T>(
 /** Queries the database for migrations table and retrieve it rows if exists */
 async function fetchAppliedMigrationFromDB(
   migrationTableName: string,
+  schema: string,
   client: pg.Client,
   log: Logger,
 ) {
   let appliedMigrations = []
-  if (await doesTableExist(client, migrationTableName)) {
+  if (await doesTableExist(client, migrationTableName, schema)) {
     log(`
 Migrations table with name '${migrationTableName}' exists,
 filtering not applied migrations.`)
@@ -221,12 +224,18 @@ function logResult(completedMigrations: Array<Migration>, log: Logger) {
 }
 
 /** Check whether table exists in postgres - http://stackoverflow.com/a/24089729 */
-async function doesTableExist(client: pg.Client, tableName: string) {
+async function doesTableExist(
+  client: pg.Client,
+  tableName: string,
+  schema: string,
+) {
   const result = await client.query(SQL`
       SELECT EXISTS (
         SELECT 1
         FROM   pg_catalog.pg_class c
-        WHERE  c.relname = ${tableName}
+        JOIN   pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+        WHERE  n.nspname = ${schema}
+        AND    c.relname = ${tableName}
         AND    c.relkind = 'r'
       );
     `)
