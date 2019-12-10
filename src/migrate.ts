@@ -95,9 +95,11 @@ function runMigrations(
       const completedMigrations = []
 
       for (const migration of migrationsToRun) {
-        const result = await runMigration(migrationTableName, client, log)(
-          migration,
-        )
+        const result = await runMigration(
+          migrationTableName,
+          client,
+          log,
+        )(migration)
         completedMigrations.push(result)
       }
 
