@@ -24,7 +24,7 @@
     "url": "https://github.com/thomwright/postgres-migrations/issues"
   },
   "engines": {
-    "node": ">8.9.3"
+    "node": ">10.17.0"
   },
   "scripts": {
     "check-formatting": "./node_modules/.bin/prettier '**/*.ts' --list-different",
@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.29",
-    "@types/node": "^8.10.51",
+    "@types/node": "^10.17.8",
     "@types/pg": "^7.11.2",
     "@types/sinon": "^7.5.1",
     "ava": "^1.4.1",
