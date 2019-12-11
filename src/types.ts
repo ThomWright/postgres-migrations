@@ -1,3 +1,5 @@
+import * as pg from "pg"
+
 export interface Migration {
   readonly id: number
   readonly name: string
@@ -7,20 +9,25 @@ export interface Migration {
   readonly sql: string
 }
 
-export interface BaseDBConfig {
+export interface ConnectionParams {
   readonly user: string
   readonly password: string
   readonly host: string
   readonly port: number
 }
 
-export interface CreateDBConfig extends BaseDBConfig {
+export type CreateDBConfig = ConnectionParams & {
   readonly defaultDatabase?: string
 }
 
-export interface MigrateDBConfig extends BaseDBConfig {
-  readonly database: string
-}
+export type MigrateDBConfig =
+  | (ConnectionParams & {
+      readonly database: string
+    })
+  | {
+      /** A connected Client, or a Pool Client. The caller is responsible for connecting and cleaning up. */
+      readonly client: pg.Client | pg.PoolClient | pg.Pool
+    }
 
 export type Logger = (msg: string) => void
 export type Config = Partial<FullConfig>
@@ -34,3 +41,7 @@ export class MigrationError extends Error {
 }
 
 export type FileType = "sql" | "js"
+
+export interface BasicPgClient {
+  query(queryTextOrConfig: string | pg.QueryConfig): Promise<pg.QueryResult>
+}

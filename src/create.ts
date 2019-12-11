@@ -11,7 +11,7 @@ export async function createDb(
   dbName: string,
   dbConfig: CreateDBConfig,
   config?: Config,
-) {
+): Promise<void> {
   if (typeof dbName !== "string") {
     throw new Error("Must pass database name as a string")
   }

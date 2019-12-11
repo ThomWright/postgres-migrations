@@ -1,24 +1,44 @@
+import {EventEmitter} from "events"
 import * as pg from "pg"
 import SQL from "sql-template-strings"
-
-import {runMigration} from "./run-migration"
 import {load} from "./files-loader"
+import {runMigration} from "./run-migration"
 import {
-  MigrateDBConfig,
+  BasicPgClient,
   Config,
-  MigrationError,
   Logger,
+  MigrateDBConfig,
   Migration,
-  FullConfig,
+  MigrationError,
 } from "./types"
 
 export async function migrate(
   dbConfig: MigrateDBConfig,
   migrationsDirectory: string,
   config: Config = {},
-) {
+): Promise<Array<Migration>> {
+  const log =
+    config.logger != null
+      ? config.logger
+      : () => {
+          //
+        }
+
+  if (dbConfig == null) {
+    throw new Error("No config object")
+  }
+
+  if (typeof migrationsDirectory !== "string") {
+    throw new Error("Must pass migrations directory as a string")
+  }
+  const intendedMigrations = await load(migrationsDirectory, log)
+
+  if ("client" in dbConfig) {
+    // we have been given a client to use, it should already be connected
+    return runMigrations(intendedMigrations, log)(dbConfig.client)
+  }
+
   if (
-    dbConfig == null ||
     typeof dbConfig.database !== "string" ||
     typeof dbConfig.user !== "string" ||
     typeof dbConfig.password !== "string" ||
@@ -27,52 +47,21 @@ export async function migrate(
   ) {
     throw new Error("Database config problem")
   }
-  if (typeof migrationsDirectory !== "string") {
-    throw new Error("Must pass migrations directory as a string")
-  }
-
-  const fullConfig: FullConfig = {
-    logger:
-      config.logger != null
-        ? config.logger
-        : () => {
-            //
-          },
-  }
-
-  return loadAndRunMigrations(dbConfig, migrationsDirectory, fullConfig)
-}
-
-async function loadAndRunMigrations(
-  dbConfig: MigrateDBConfig,
-  migrationsDirectory: string,
-  config: FullConfig,
-): Promise<Array<Migration>> {
-  const {logger: log} = config
-
-  const intendedMigrations = await load(migrationsDirectory, log)
 
   const client = new pg.Client(dbConfig)
-
   client.on("error", err => {
     log(`pg client emitted an error: ${err.message}`)
   })
 
-  log("Attempting database migration")
-
-  const runWith = withConnection(
-    config,
-    runMigrations(intendedMigrations, config),
-  )
+  const runWith = withConnection(log, runMigrations(intendedMigrations, log))
 
   return runWith(client)
 }
 
-function runMigrations(
-  intendedMigrations: Array<Migration>,
-  {logger: log}: FullConfig,
-): (client: pg.Client) => Promise<Array<Migration>> {
-  return async (client: pg.Client) => {
+function runMigrations(intendedMigrations: Array<Migration>, log: Logger) {
+  return async (client: BasicPgClient) => {
+    log("Attempting database migration")
+
     try {
       const migrationTableName = "migrations"
 
@@ -117,8 +106,8 @@ function runMigrations(
 }
 
 function withConnection<T>(
-  {logger: log}: FullConfig,
-  f: (client: pg.Client) => Promise<T>,
+  log: Logger,
+  f: (client: BasicPgClient & EventEmitter) => Promise<T>,
 ): (client: pg.Client) => Promise<T> {
   return async (client: pg.Client): Promise<T> => {
     try {
@@ -146,7 +135,7 @@ function withConnection<T>(
 /** Queries the database for migrations table and retrieve it rows if exists */
 async function fetchAppliedMigrationFromDB(
   migrationTableName: string,
-  client: pg.Client,
+  client: BasicPgClient,
   log: Logger,
 ) {
   let appliedMigrations = []
@@ -223,7 +212,7 @@ function logResult(completedMigrations: Array<Migration>, log: Logger) {
 }
 
 /** Check whether table exists in postgres - http://stackoverflow.com/a/24089729 */
-async function doesTableExist(client: pg.Client, tableName: string) {
+async function doesTableExist(client: BasicPgClient, tableName: string) {
   const result = await client.query(SQL`
       SELECT EXISTS (
         SELECT 1

@@ -18,6 +18,76 @@ test.before.cb(t => {
   port = startPostgres(CONTAINER_NAME, t)
 })
 
+// can't test with unconnected client because `pg` just hangs on the first query...
+test("with connected client", async t => {
+  const databaseName = "migration-test-with-connected-client"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  await createDb(databaseName, dbConfig)
+
+  const client = new pg.Client(dbConfig)
+  await client.connect()
+
+  await migrate({client}, "src/__tests__/fixtures/success-first")
+
+  await client.end()
+
+  const exists = await doesTableExist(dbConfig, "success")
+  t.truthy(exists)
+})
+
+test("with pool", async t => {
+  const databaseName = "migration-test-with-pool"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  await createDb(databaseName, dbConfig)
+
+  const pool = new pg.Pool(dbConfig)
+
+  await migrate({client: pool}, "src/__tests__/fixtures/success-first")
+
+  await pool.end()
+
+  const exists = await doesTableExist(dbConfig, "success")
+  t.truthy(exists)
+})
+
+test("with pool client", async t => {
+  const databaseName = "migration-test-with-pool-client"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  await createDb(databaseName, dbConfig)
+
+  const pool = new pg.Pool(dbConfig)
+  const client = await pool.connect()
+
+  await migrate({client}, "src/__tests__/fixtures/success-first")
+
+  client.release()
+  await pool.end()
+
+  const exists = await doesTableExist(dbConfig, "success")
+  t.truthy(exists)
+})
+
 test("successful first migration", t => {
   const databaseName = "migration-test-success-first"
   const dbConfig = {
