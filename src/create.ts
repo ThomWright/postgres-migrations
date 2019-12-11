@@ -1,39 +1,17 @@
-import {CreateDBConfig, Config} from "./types"
+import * as pg from "pg"
+import {BasicPgClient, Config, CreateDBConfig, Logger} from "./types"
+import {withConnection} from "./with-connection"
 
-// TODO: remove this dependency?
-// tslint:disable ignore-next-line no-var-requires
-const pgtools = require("pgtools")
-
-// Time out after 10 seconds - should probably be able to override this
-const DEFAULT_TIMEOUT = 10000
+const DUPLICATE_DATABASE = "42P04"
 
 export async function createDb(
   dbName: string,
   dbConfig: CreateDBConfig,
-  config?: Config,
+  config: Config = {},
 ): Promise<void> {
   if (typeof dbName !== "string") {
     throw new Error("Must pass database name as a string")
   }
-  if (
-    dbConfig == null ||
-    typeof dbConfig.user !== "string" ||
-    typeof dbConfig.password !== "string" ||
-    typeof dbConfig.host !== "string" ||
-    typeof dbConfig.port !== "number"
-  ) {
-    throw new Error("Database config problem")
-  }
-
-  return create(dbName, dbConfig, config)
-}
-
-async function create(
-  dbName: string,
-  dbConfig: CreateDBConfig,
-  config: Config = {},
-) {
-  const {user, password, host, port} = dbConfig
 
   const log =
     config.logger != null
@@ -42,37 +20,59 @@ async function create(
           //
         }
 
-  log(`Attempting to create database: ${dbName}`)
+  if (dbConfig == null) {
+    throw new Error("No config object")
+  }
 
-  // pgtools mutates its inputs (tut tut) so create our own object here
-  const pgtoolsConfig = {
+  if ("client" in dbConfig) {
+    return betterCreate(dbName, log)(dbConfig.client)
+  }
+
+  if (
+    typeof dbConfig.user !== "string" ||
+    typeof dbConfig.password !== "string" ||
+    typeof dbConfig.host !== "string" ||
+    typeof dbConfig.port !== "number"
+  ) {
+    throw new Error("Database config problem")
+  }
+
+  const {user, password, host, port} = dbConfig
+  const client = new pg.Client({
     database:
       dbConfig.defaultDatabase != null ? dbConfig.defaultDatabase : "postgres",
     user,
     password,
     host,
     port,
-  }
+  })
+  client.on("error", err => {
+    log(`pg client emitted an error: ${err.message}`)
+  })
 
-  try {
-    await pgtools
-      .createdb(pgtoolsConfig, dbName)
-      .timeout(
-        DEFAULT_TIMEOUT,
-        `Timed out trying to create database: ${dbName}`,
-      ) // pgtools uses Bluebird
-    log(`Created database: ${dbName}`)
-  } catch (err) {
-    if (err) {
-      // we are not worried about duplicate db errors
-      if (err.name !== "duplicate_database") {
-        log(err)
-        throw new Error(
-          `Error creating database. Caused by: '${err.name}: ${err.message}'`,
-        )
-      } else {
-        log(`'${dbName}' database already exists`)
-      }
-    }
+  const runWith = withConnection(log, betterCreate(dbName, log))
+
+  return runWith(client)
+}
+
+function betterCreate(dbName: string, log: Logger) {
+  return async (client: BasicPgClient): Promise<void> => {
+    await client
+      .query(`CREATE DATABASE "${dbName.replace(/\"/g, '""')}"`)
+      .catch(e => {
+        switch (e.code) {
+          case DUPLICATE_DATABASE: {
+            log(`'${dbName}' database already exists`)
+            return
+          }
+
+          default: {
+            log(e)
+            throw new Error(
+              `Error creating database. Caused by: '${e.name}: ${e.message}'`,
+            )
+          }
+        }
+      })
   }
 }

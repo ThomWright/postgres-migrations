@@ -1,4 +1,3 @@
-import {EventEmitter} from "events"
 import * as pg from "pg"
 import SQL from "sql-template-strings"
 import {load} from "./files-loader"
@@ -11,6 +10,7 @@ import {
   Migration,
   MigrationError,
 } from "./types"
+import {withConnection} from "./with-connection"
 
 export async function migrate(
   dbConfig: MigrateDBConfig,
@@ -101,33 +101,6 @@ function runMigrations(intendedMigrations: Array<Migration>, log: Logger) {
       )
       error.cause = e
       throw error
-    }
-  }
-}
-
-function withConnection<T>(
-  log: Logger,
-  f: (client: BasicPgClient & EventEmitter) => Promise<T>,
-): (client: pg.Client) => Promise<T> {
-  return async (client: pg.Client): Promise<T> => {
-    try {
-      try {
-        await client.connect()
-        log("Connected to database")
-      } catch (e) {
-        log(`Error connecting to database: ${e.message}`)
-        throw e
-      }
-
-      const result = await f(client)
-      return result
-    } finally {
-      // always try to close the connection
-      try {
-        await client.end()
-      } catch (e) {
-        log(`Error closing the connection: ${e.message}`)
-      }
     }
   }
 }

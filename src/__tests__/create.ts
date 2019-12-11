@@ -1,6 +1,6 @@
 // tslint:disable no-console
-
 import test from "ava"
+import * as pg from "pg"
 import {execSync} from "child_process"
 import {createDb} from "../"
 import {PASSWORD, startPostgres} from "./fixtures/start-postgres"
@@ -11,6 +11,25 @@ let port: number
 
 test.before.cb(t => {
   port = startPostgres(CONTAINER_NAME, t)
+})
+
+test("with connected client", async t => {
+  t.plan(0)
+
+  const client = new pg.Client({
+    database: "postgres",
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  })
+  await client.connect()
+
+  try {
+    await createDb("create-test-with-connected-client", {client})
+  } finally {
+    await client.end()
+  }
 })
 
 test("successful creation", t => {

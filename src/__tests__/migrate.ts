@@ -29,17 +29,32 @@ test("with connected client", async t => {
     port,
   }
 
-  await createDb(databaseName, dbConfig)
+  {
+    const client = new pg.Client({
+      ...dbConfig,
+      database: "postgres",
+    })
+    await client.connect()
+    try {
+      await createDb(databaseName, {client})
+    } finally {
+      await client.end()
+    }
+  }
 
-  const client = new pg.Client(dbConfig)
-  await client.connect()
+  {
+    const client = new pg.Client(dbConfig)
+    try {
+      await client.connect()
 
-  await migrate({client}, "src/__tests__/fixtures/success-first")
+      await migrate({client}, "src/__tests__/fixtures/success-first")
 
-  await client.end()
-
-  const exists = await doesTableExist(dbConfig, "success")
-  t.truthy(exists)
+      const exists = await doesTableExist(dbConfig, "success")
+      t.truthy(exists)
+    } finally {
+      await client.end()
+    }
+  }
 })
 
 test("with pool", async t => {
@@ -52,16 +67,30 @@ test("with pool", async t => {
     port,
   }
 
-  await createDb(databaseName, dbConfig)
+  {
+    const client = new pg.Client({
+      ...dbConfig,
+      database: "postgres",
+    })
+    await client.connect()
+    try {
+      await createDb(databaseName, {client})
+    } finally {
+      await client.end()
+    }
+  }
 
   const pool = new pg.Pool(dbConfig)
+  try {
+    await createDb(databaseName, dbConfig)
 
-  await migrate({client: pool}, "src/__tests__/fixtures/success-first")
+    await migrate({client: pool}, "src/__tests__/fixtures/success-first")
 
-  await pool.end()
-
-  const exists = await doesTableExist(dbConfig, "success")
-  t.truthy(exists)
+    const exists = await doesTableExist(dbConfig, "success")
+    t.truthy(exists)
+  } finally {
+    await pool.end()
+  }
 })
 
 test("with pool client", async t => {
@@ -74,18 +103,34 @@ test("with pool client", async t => {
     port,
   }
 
-  await createDb(databaseName, dbConfig)
+  {
+    const client = new pg.Client({
+      ...dbConfig,
+      database: "postgres",
+    })
+    await client.connect()
+    try {
+      await createDb(databaseName, {client})
+    } finally {
+      await client.end()
+    }
+  }
 
   const pool = new pg.Pool(dbConfig)
-  const client = await pool.connect()
+  try {
+    await createDb(databaseName, dbConfig)
+    const client = await pool.connect()
+    try {
+      await migrate({client}, "src/__tests__/fixtures/success-first")
 
-  await migrate({client}, "src/__tests__/fixtures/success-first")
-
-  client.release()
-  await pool.end()
-
-  const exists = await doesTableExist(dbConfig, "success")
-  t.truthy(exists)
+      const exists = await doesTableExist(dbConfig, "success")
+      t.truthy(exists)
+    } finally {
+      client.release()
+    }
+  } finally {
+    await pool.end()
+  }
 })
 
 test("successful first migration", t => {

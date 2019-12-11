@@ -16,18 +16,22 @@ export interface ConnectionParams {
   readonly port: number
 }
 
-export type CreateDBConfig = ConnectionParams & {
-  readonly defaultDatabase?: string
+export interface ClientParams {
+  /** A connected Client, or a Pool Client. The caller is responsible for connecting and cleaning up. */
+  readonly client: pg.Client | pg.PoolClient | pg.Pool
 }
+
+export type CreateDBConfig =
+  | (ConnectionParams & {
+      readonly defaultDatabase?: string
+    })
+  | ClientParams
 
 export type MigrateDBConfig =
   | (ConnectionParams & {
       readonly database: string
     })
-  | {
-      /** A connected Client, or a Pool Client. The caller is responsible for connecting and cleaning up. */
-      readonly client: pg.Client | pg.PoolClient | pg.Pool
-    }
+  | ClientParams
 
 export type Logger = (msg: string) => void
 export type Config = Partial<FullConfig>

@@ -46,7 +46,6 @@
   },
   "dependencies": {
     "pg": "^7.14.0",
-    "pgtools": "^0.3",
     "sql-template-strings": "^2.2.2"
   },
   "devDependencies": {
