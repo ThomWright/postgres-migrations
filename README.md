@@ -7,35 +7,70 @@
 
 A PostgreSQL migration library inspired by the Stack Overflow system described in [Nick Craver's blog](http://nickcraver.com/blog/2016/05/03/stack-overflow-how-we-do-deployment-2016-edition/#database-migrations).
 
-Requires Node 8.9.3+
+Requires Node 10.17.0+
 
 Supports PostgreSQL 9.4+
 
 ## API
 
-```js
-const {createDb, migrate} = require("postgres-migrations")
+There are two ways to use the API.
 
-createDb("database-name", {
-  defaultDatabase: "postgres", // optional, default: "postgres"
-  user: "postgres",
-  password: "password",
-  host: "localhost",
-  port: 5432,
-})
-.then(() => {
-  return migrate({
+Either, pass a database connection config object:
+
+```typescript
+import {createDb, migrate} from "postgres-migrations"
+
+async function() {
+  const dbConfig = {
     database: "database-name",
     user: "postgres",
     password: "password",
     host: "localhost",
     port: 5432,
-  }, "path/to/migration/files")
-})
-.then(() => {/* ... */})
-.catch((err) => {
-  console.log(err)
-})
+  }
+
+  await createDb(databaseName, dbConfig)
+  await migrate(dbConfig, "path/to/migration/files")
+}
+```
+
+Or, pass a `pg` client:
+
+```typescript
+import {createDb, migrate} from "postgres-migrations"
+
+async function() {
+  const dbConfig = {
+    database: "database-name",
+    user: "postgres",
+    password: "password",
+    host: "localhost",
+    port: 5432,
+  }
+
+  {
+    const client = new pg.Client({
+      ...dbConfig,
+      database: "postgres",
+    })
+    await client.connect()
+    try {
+      await createDb(databaseName, {client})
+    } finally {
+      await client.end()
+    }
+  }
+
+  {
+    const client = new pg.Client(dbConfig) // or a Pool, or a PoolClient
+    await client.connect()
+    try {
+      await migrate({client}, "path/to/migration/files")
+    } finally {
+      await client.end()
+    }
+  }
+}
 ```
 
 ## Design decisions
@@ -102,12 +137,12 @@ A migration file must match the following pattern:
 
 `[id][separator][name][extension]`
 
-| Section | Accepted Values | Description   |
-|   ---   |         ---     |       ---     |
-|   id    |   Any integer or left zero integers      |   Consecutive integer ID. <br />**Must start from 1 and be consecutive, e.g. if you have migrations 1-4, the next one must be 5.** |
-|   separator | `_` or `-` or nothing | |
-|   name    |   Any length text | |
-|   extension   |   `.sql` or `.js` | File extensions supported **not case sensitive** |
+| Section   | Accepted Values                   | Description                                                                                                                      |
+| --------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| id        | Any integer or left zero integers | Consecutive integer ID. <br />**Must start from 1 and be consecutive, e.g. if you have migrations 1-4, the next one must be 5.** |
+| separator | `_` or `-` or nothing             |                                                                                                                                  |
+| name      | Any length text                   |                                                                                                                                  |
+| extension | `.sql` or `.js`                   | File extensions supported **not case sensitive**                                                                                 |
 
 Example:
 
@@ -149,8 +184,8 @@ CREATE TABLE secondary (
 );`
 
 // ./migrations/1-init.js
-const createMainTable = require('./create-main-table')
-const createSecondaryTable = require('./create-secondary-table')
+const createMainTable = require("./create-main-table")
+const createSecondaryTable = require("./create-secondary-table")
 
 module.exports.generateSql = () => `${createMainTable}
 ${createSecondaryTable}`
@@ -163,7 +198,8 @@ If you want sane date handling, it is recommended you use the following code sni
 ```js
 const pg = require("pg")
 
-const parseDate = (val) => val === null ? null : moment(val).format("YYYY-MM-DD")
+const parseDate = val =>
+  val === null ? null : moment(val).format("YYYY-MM-DD")
 const DATATYPE_DATE = 1082
 pg.types.setTypeParser(DATATYPE_DATE, val => {
   return val === null ? null : parseDate(val)
