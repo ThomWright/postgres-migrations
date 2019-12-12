@@ -92,7 +92,7 @@ Some migration systems use timestamps for ordering migrations, where the timesta
 
 For example, imagine Developer A creates a migration file in a branch. The next day, Developer B creates a migration in master, and deploys it to production. On day three Developer A merges in their branch and deploys to production.
 
-The production database sees the migrations applied out of order with respect to their creation time. Any new development database will run the migrations in a different order.
+The production database sees the migrations applied out of order with respect to their creation time. Any new development database will run the migrations in the timestamp order.
 
 ### The `migrations` table
 
@@ -112,7 +112,7 @@ An exception is made when `-- postgres-migrations disable-transaction` is includ
 
 ### Abort on errors
 
-If anything fails, the process is aborted by throwing an exception.
+If anything fails, the migration in progress is rolled back and an exception is thrown.
 
 ## Migration rules
 
