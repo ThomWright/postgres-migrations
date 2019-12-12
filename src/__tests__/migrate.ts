@@ -21,6 +21,30 @@ test.after.always(() => {
   stopPostgres(CONTAINER_NAME)
 })
 
+test("concurrent migrations", async t => {
+  const databaseName = "migration-test-concurrent"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  await createDb(databaseName, dbConfig)
+
+  await migrate(dbConfig, "src/__tests__/fixtures/concurrent")
+
+  // should deadlock if running concurrently
+  await Promise.all([
+    migrate(dbConfig, "src/__tests__/fixtures/concurrent-2"),
+    migrate(dbConfig, "src/__tests__/fixtures/concurrent-2"),
+  ])
+
+  const exists = await doesTableExist(dbConfig, "concurrent")
+  t.truthy(exists)
+})
+
 // can't test with unconnected client because `pg` just hangs on the first query...
 test("with connected client", async t => {
   const databaseName = "migration-test-with-connected-client"

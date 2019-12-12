@@ -11,6 +11,7 @@ import {
   MigrationError,
 } from "./types"
 import {withConnection} from "./with-connection"
+import {withAdvisoryLock} from "./with-lock"
 
 export async function migrate(
   dbConfig: MigrateDBConfig,
@@ -35,7 +36,10 @@ export async function migrate(
 
   if ("client" in dbConfig) {
     // we have been given a client to use, it should already be connected
-    return runMigrations(intendedMigrations, log)(dbConfig.client)
+    return withAdvisoryLock(
+      log,
+      runMigrations(intendedMigrations, log),
+    )(dbConfig.client)
   }
 
   if (
@@ -53,7 +57,10 @@ export async function migrate(
     log(`pg client emitted an error: ${err.message}`)
   })
 
-  const runWith = withConnection(log, runMigrations(intendedMigrations, log))
+  const runWith = withConnection(
+    log,
+    withAdvisoryLock(log, runMigrations(intendedMigrations, log)),
+  )
 
   return runWith(client)
 }
