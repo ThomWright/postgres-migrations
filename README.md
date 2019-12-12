@@ -114,6 +114,37 @@ An exception is made when `-- postgres-migrations disable-transaction` is includ
 
 If anything fails, the migration in progress is rolled back and an exception is thrown.
 
+## Concurrency
+
+As of v4, [advisory locks](https://www.postgresql.org/docs/9.4/explicit-locking.html#ADVISORY-LOCKS) are used to control concurrency. If two migration runs are kicked off concurrently, one will wait for the other to finish before starting. Once a process has acquired a lock, it will run each of the pending migrations before releasing the lock again.
+
+Logs from two processes `A` and `B` running concurrently should look something like the following.
+
+```text
+B Connected to database
+B Acquiring advisory lock...
+A Connected to database
+A Acquiring advisory lock...
+B ... aquired advisory lock
+B Starting migrations
+B Starting migration: 2 migration-name
+B Finished migration: 2 migration-name
+B Starting migration: 3 another-migration-name
+B Finished migration: 3 another-migration-name
+B Successfully applied migrations: migration-name, another-migration-name
+B Finished migrations
+B Releasing advisory lock...
+B ... released advisory lock
+A ... aquired advisory lock
+A Starting migrations
+A No migrations applied
+A Finished migrations
+A Releasing advisory lock...
+A ... released advisory lock
+```
+
+Warning: the use of advisory locks will cause problems when using [transaction pooling or statement pooling in PgBouncer](http://www.pgbouncer.org/features.html). A similar system is used in Rails, [see this for an explanation of the problem](https://blog.saeloun.com/2019/09/09/rails-6-disable-advisory-locks.html).
+
 ## Migration rules
 
 ### Make migrations idempotent
