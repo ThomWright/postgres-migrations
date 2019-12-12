@@ -1,10 +1,9 @@
 // tslint:disable no-console
 import test from "ava"
-import {execSync} from "child_process"
 import * as pg from "pg"
 import SQL from "sql-template-strings"
 import {createDb, migrate} from "../"
-import {PASSWORD, startPostgres} from "./fixtures/start-postgres"
+import {PASSWORD, startPostgres, stopPostgres} from "./fixtures/docker-postgres"
 
 const CONTAINER_NAME = "pg-migrations-test-migrate"
 
@@ -16,6 +15,10 @@ process.on("uncaughtException", function(err) {
 
 test.before.cb(t => {
   port = startPostgres(CONTAINER_NAME, t)
+})
+
+test.after.always(() => {
+  stopPostgres(CONTAINER_NAME)
 })
 
 // can't test with unconnected client because `pg` just hangs on the first query...
@@ -570,15 +573,6 @@ test("rollback", t => {
         "The table created in the migration should not have been committed.",
       )
     })
-})
-
-test.after.always(() => {
-  try {
-    execSync(`docker rm -f ${CONTAINER_NAME}`)
-  } catch (error) {
-    console.log("Could not remove the Postgres container")
-    throw error
-  }
 })
 
 function doesTableExist(dbConfig: pg.ClientConfig, tableName: string) {

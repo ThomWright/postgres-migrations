@@ -1,9 +1,8 @@
 // tslint:disable no-console
 import test from "ava"
 import * as pg from "pg"
-import {execSync} from "child_process"
 import {createDb} from "../"
-import {PASSWORD, startPostgres} from "./fixtures/start-postgres"
+import {PASSWORD, startPostgres, stopPostgres} from "./fixtures/docker-postgres"
 
 const CONTAINER_NAME = "pg-migrations-test-create"
 
@@ -11,6 +10,10 @@ let port: number
 
 test.before.cb(t => {
   port = startPostgres(CONTAINER_NAME, t)
+})
+
+test.after.always(() => {
+  stopPostgres(CONTAINER_NAME)
 })
 
 test("with connected client", async t => {
@@ -170,8 +173,4 @@ test("custom default database name", t => {
     })
 
   return create().then(create)
-})
-
-test.after.always(() => {
-  execSync(`docker rm -f ${CONTAINER_NAME}`)
 })
