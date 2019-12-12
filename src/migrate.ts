@@ -67,20 +67,16 @@ export async function migrate(
 
 function runMigrations(intendedMigrations: Array<Migration>, log: Logger) {
   return async (client: BasicPgClient) => {
-    log("Attempting database migration")
-
     try {
       const migrationTableName = "migrations"
 
-      log("Will run migrations...")
+      log("Starting migrations")
 
       const appliedMigrations = await fetchAppliedMigrationFromDB(
         migrationTableName,
         client,
         log,
       )
-
-      log(appliedMigrations.length.toString())
 
       validateMigrations(intendedMigrations, appliedMigrations)
 
@@ -91,15 +87,19 @@ function runMigrations(intendedMigrations: Array<Migration>, log: Logger) {
       const completedMigrations = []
 
       for (const migration of migrationsToRun) {
+        log(`Starting migration: ${migration.id} ${migration.name}`)
         const result = await runMigration(
           migrationTableName,
           client,
           log,
         )(migration)
+        log(`Finished migration: ${migration.id} ${migration.name}`)
         completedMigrations.push(result)
       }
 
       logResult(completedMigrations, log)
+
+      log("Finished migrations")
 
       return completedMigrations
     } catch (e) {
