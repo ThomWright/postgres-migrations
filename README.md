@@ -209,14 +209,6 @@ pg.types.setTypeParser(DATATYPE_DATE, val => {
 })
 ```
 
-## Further work
-
-- Ability to force migrations to run (i.e. no hash checks)
-- Ability to run migrations up to a set point (e.g. run to migration 5)
-- Ability to configure timeouts (and add timeout to migrations)
-- Ability to configure migration table name
-- CLI if people want it
-
 ## Useful resources
 
 [Stack Overflow: How We Do Deployment - 2016 Edition (Database Migrations)](http://nickcraver.com/blog/2016/05/03/stack-overflow-how-we-do-deployment-2016-edition/#database-migrations)
