@@ -55,8 +55,7 @@ export const runMigration = (
     } catch {
       //
     }
-    throw new Error(`
-An error occurred running '${migration.name}'. Rolled back this migration.
+    throw new Error(`An error occurred running '${migration.name}'. Rolled back this migration.
 No further migrations were run.
 Reason: ${err.message}`)
   }

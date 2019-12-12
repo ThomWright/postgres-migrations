@@ -113,8 +113,7 @@ async function fetchAppliedMigrationFromDB(
 ) {
   let appliedMigrations = []
   if (await doesTableExist(client, migrationTableName)) {
-    log(`
-Migrations table with name '${migrationTableName}' exists,
+    log(`Migrations table with name '${migrationTableName}' exists,
 filtering not applied migrations.`)
 
     const {rows} = await client.query(
@@ -122,8 +121,7 @@ filtering not applied migrations.`)
     )
     appliedMigrations = rows
   } else {
-    log(`
-Migrations table with name '${migrationTableName}' hasn't been created,
+    log(`Migrations table with name '${migrationTableName}' hasn't been created,
 so the database is new and we need to run all migrations.`)
   }
   return appliedMigrations
@@ -154,8 +152,7 @@ function validateMigrations(
   if (invalidHashes.length > 0) {
     // Someone has altered one or more migrations which has already run - gasp!
     const invalidFiles = invalidHashes.map(({fileName}) => fileName)
-    throw new Error(`
-Hashes don't match for migrations '${invalidFiles}'.
+    throw new Error(`Hashes don't match for migrations '${invalidFiles}'.
 This means that the scripts have changed since it was applied.`)
   }
 }
@@ -186,14 +183,12 @@ function logResult(completedMigrations: Array<Migration>, log: Logger) {
 
 /** Check whether table exists in postgres - http://stackoverflow.com/a/24089729 */
 async function doesTableExist(client: BasicPgClient, tableName: string) {
-  const result = await client.query(SQL`
-      SELECT EXISTS (
-        SELECT 1
-        FROM   pg_catalog.pg_class c
-        WHERE  c.relname = ${tableName}
-        AND    c.relkind = 'r'
-      );
-    `)
+  const result = await client.query(SQL`SELECT EXISTS (
+  SELECT 1
+  FROM   pg_catalog.pg_class c
+  WHERE  c.relname = ${tableName}
+  AND    c.relkind = 'r'
+);`)
 
   return result.rows.length > 0 && result.rows[0].exists
 }
