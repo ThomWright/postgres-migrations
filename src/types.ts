@@ -23,6 +23,7 @@ export interface ClientParams {
 
 export type CreateDBConfig =
   | (ConnectionParams & {
+      /** The database to connect to when creating the new database. */
       readonly defaultDatabase?: string
     })
   | ClientParams

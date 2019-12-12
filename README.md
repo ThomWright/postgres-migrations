@@ -22,14 +22,17 @@ import {createDb, migrate} from "postgres-migrations"
 
 async function() {
   const dbConfig = {
-    database: "database-name",
+    database: "database-name"
     user: "postgres",
     password: "password",
     host: "localhost",
     port: 5432,
   }
 
-  await createDb(databaseName, dbConfig)
+  await createDb(databaseName, {
+    ...dbConfig,
+    defaultDatabase: "postgres", // defaults to "postgres"
+  })
   await migrate(dbConfig, "path/to/migration/files")
 }
 ```
