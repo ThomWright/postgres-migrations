@@ -1,6 +1,6 @@
 {
   "name": "postgres-migrations",
-  "version": "3.0.2",
+  "version": "4.0.0",
   "description": "Stack Overflow style database migrations for PostgreSQL",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,15 +24,17 @@
     "url": "https://github.com/thomwright/postgres-migrations/issues"
   },
   "engines": {
-    "node": ">8.9.3"
+    "node": ">10.17.0"
   },
   "scripts": {
+    "checkPushed": "[ \"$(git rev-list --count @{upstream}..HEAD)\" -eq 0 ] || (echo You have unpushed commits && exit 1)",
+    "prepublishOnly": "npm run checkPushed && npm test && npm run build",
     "check-formatting": "./node_modules/.bin/prettier '**/*.ts' --list-different",
     "fix-formatting": "./node_modules/.bin/prettier '**/*.ts' --write",
     "lint": "npm run tslint && npm run check-formatting",
     "tslint": "tslint 'src/**/*.ts' --type-check --project tsconfig.json --format verbose",
-    "test-integration": "ava",
-    "test-unit": "ava src/**/__unit__/**/*.ts",
+    "test-integration": "ava --config ava.config.integration.js",
+    "test-unit": "ava --config ava.config.unit.js",
     "test": "npm run test-unit && npm run lint && npm run test-integration",
     "preversion": "npm test",
     "build": "rm -rf ./dist && rsync -a --exclude='*.ts' --exclude='__tests__' --prune-empty-dirs src/ dist/ && tsc --project tsconfig-build.json"
@@ -44,34 +46,24 @@
       "pre-push": "npm test"
     }
   },
-  "ava": {
-    "compileEnhancements": false,
-    "extensions": [
-      "ts"
-    ],
-    "require": [
-      "ts-node/register"
-    ]
-  },
   "dependencies": {
-    "pg": "^7.12.0",
-    "pgtools": "^0.3",
+    "pg": "^7.14.0",
     "sql-template-strings": "^2.2.2"
   },
   "devDependencies": {
-    "@types/bluebird": "^3.5.27",
-    "@types/node": "^8.10.51",
-    "@types/pg": "^7.4.14",
-    "@types/sinon": "^7.0.13",
-    "ava": "^1.4.1",
+    "@types/bluebird": "^3.5.29",
+    "@types/node": "^10.17.8",
+    "@types/pg": "^7.11.2",
+    "@types/sinon": "^7.5.1",
+    "ava": "^2.4.0",
     "fit-commit-js": "^0.3.2",
-    "husky": "^1.3.1",
-    "prettier": "^1.18.2",
-    "sinon": "^7.3.2",
-    "ts-node": "^8.3.0",
-    "tslint": "^5.18.0",
+    "husky": "^3.1.0",
+    "prettier": "^1.19.1",
+    "sinon": "^7.5.0",
+    "ts-node": "^8.5.4",
+    "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.5.3",
-    "typescript-tslint-plugin": "^0.3.1"
+    "typescript": "^3.7.3",
+    "typescript-tslint-plugin": "^0.5.5"
   }
 }

@@ -1,10 +1,9 @@
 // tslint:disable no-console
 import test from "ava"
-import {execSync} from "child_process"
 import * as pg from "pg"
 import SQL from "sql-template-strings"
 import {createDb, migrate} from "../"
-import {PASSWORD, startPostgres} from "./fixtures/start-postgres"
+import {PASSWORD, startPostgres, stopPostgres} from "./fixtures/docker-postgres"
 
 const CONTAINER_NAME = "pg-migrations-test-migrate"
 
@@ -16,6 +15,149 @@ process.on("uncaughtException", function(err) {
 
 test.before.cb(t => {
   port = startPostgres(CONTAINER_NAME, t)
+})
+
+test.after.always(() => {
+  stopPostgres(CONTAINER_NAME)
+})
+
+test("concurrent migrations", async t => {
+  const databaseName = "migration-test-concurrent"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  await createDb(databaseName, dbConfig)
+
+  await migrate(dbConfig, "src/__tests__/fixtures/concurrent")
+
+  // should deadlock if running concurrently
+  await Promise.all([
+    migrate(dbConfig, "src/__tests__/fixtures/concurrent-2"),
+    migrate(dbConfig, "src/__tests__/fixtures/concurrent-2"),
+  ])
+
+  const exists = await doesTableExist(dbConfig, "concurrent")
+  t.truthy(exists)
+})
+
+// can't test with unconnected client because `pg` just hangs on the first query...
+test("with connected client", async t => {
+  const databaseName = "migration-test-with-connected-client"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  {
+    const client = new pg.Client({
+      ...dbConfig,
+      database: "postgres",
+    })
+    await client.connect()
+    try {
+      await createDb(databaseName, {client})
+    } finally {
+      await client.end()
+    }
+  }
+
+  {
+    const client = new pg.Client(dbConfig)
+    try {
+      await client.connect()
+
+      await migrate({client}, "src/__tests__/fixtures/success-first")
+
+      const exists = await doesTableExist(dbConfig, "success")
+      t.truthy(exists)
+    } finally {
+      await client.end()
+    }
+  }
+})
+
+test("with pool", async t => {
+  const databaseName = "migration-test-with-pool"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  {
+    const client = new pg.Client({
+      ...dbConfig,
+      database: "postgres",
+    })
+    await client.connect()
+    try {
+      await createDb(databaseName, {client})
+    } finally {
+      await client.end()
+    }
+  }
+
+  const pool = new pg.Pool(dbConfig)
+  try {
+    await createDb(databaseName, dbConfig)
+
+    await migrate({client: pool}, "src/__tests__/fixtures/success-first")
+
+    const exists = await doesTableExist(dbConfig, "success")
+    t.truthy(exists)
+  } finally {
+    await pool.end()
+  }
+})
+
+test("with pool client", async t => {
+  const databaseName = "migration-test-with-pool-client"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  {
+    const client = new pg.Client({
+      ...dbConfig,
+      database: "postgres",
+    })
+    await client.connect()
+    try {
+      await createDb(databaseName, {client})
+    } finally {
+      await client.end()
+    }
+  }
+
+  const pool = new pg.Pool(dbConfig)
+  try {
+    await createDb(databaseName, dbConfig)
+    const client = await pool.connect()
+    try {
+      await migrate({client}, "src/__tests__/fixtures/success-first")
+
+      const exists = await doesTableExist(dbConfig, "success")
+      t.truthy(exists)
+    } finally {
+      client.release()
+    }
+  } finally {
+    await pool.end()
+  }
 })
 
 test("successful first migration", t => {
@@ -455,15 +597,6 @@ test("rollback", t => {
         "The table created in the migration should not have been committed.",
       )
     })
-})
-
-test.after.always(() => {
-  try {
-    execSync(`docker rm -f ${CONTAINER_NAME}`)
-  } catch (error) {
-    console.log("Could not remove the Postgres container")
-    throw error
-  }
 })
 
 function doesTableExist(dbConfig: pg.ClientConfig, tableName: string) {

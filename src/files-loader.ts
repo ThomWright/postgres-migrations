@@ -6,7 +6,7 @@ import {Logger, Migration} from "./types"
 
 const readDir = promisify(fs.readdir)
 
-const isValidFile = (fileName: string) => /.(sql|js)$/gi.test(fileName)
+const isValidFile = (fileName: string) => /\.(sql|js)$/gi.test(fileName)
 
 export const load = async (
   directory: string,

@@ -52,8 +52,7 @@ export const load = async (filePath: string) => {
       sql,
     }
   } catch (err) {
-    throw new Error(`
-${err.message}
+    throw new Error(`${err.message}
 Offending file: '${fileName}'.`)
   }
 }

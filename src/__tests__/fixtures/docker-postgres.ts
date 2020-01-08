@@ -7,8 +7,23 @@ export const PASSWORD = "mysecretpassword"
 
 const HEALTH_CHECK_CMD = `'export PGPASSWORD=${PASSWORD}; HOST=$(hostname --ip-address); echo "SELECT 1" | psql --host=$HOST -U postgres -q -t -A'`
 
+export const stopPostgres = (containerName: string) => {
+  try {
+    execSync(`docker rm -f ${containerName}`)
+  } catch (error) {
+    console.log("Could not remove the Postgres container")
+    throw error
+  }
+}
+
 export const startPostgres = (containerName: string, t: CbExecutionContext) => {
   try {
+    try {
+      execSync(`docker rm -f ${containerName}`, {stdio: "ignore"})
+    } catch (error) {
+      //
+    }
+
     const events = spawn("docker", [
       "events",
       "--filter",

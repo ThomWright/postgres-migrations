@@ -7,35 +7,73 @@
 
 A PostgreSQL migration library inspired by the Stack Overflow system described in [Nick Craver's blog](http://nickcraver.com/blog/2016/05/03/stack-overflow-how-we-do-deployment-2016-edition/#database-migrations).
 
-Requires Node 8.9.3+
+Requires Node 10.17.0+
 
 Supports PostgreSQL 9.4+
 
 ## API
 
-```js
-const {createDb, migrate} = require("postgres-migrations")
+There are two ways to use the API.
 
-createDb("database-name", {
-  defaultDatabase: "postgres", // optional, default: "postgres"
-  user: "postgres",
-  password: "password",
-  host: "localhost",
-  port: 5432,
-})
-.then(() => {
-  return migrate({
+Either, pass a database connection config object:
+
+```typescript
+import {createDb, migrate} from "postgres-migrations"
+
+async function() {
+  const dbConfig = {
+    database: "database-name"
+    user: "postgres",
+    password: "password",
+    host: "localhost",
+    port: 5432,
+  }
+
+  await createDb(databaseName, {
+    ...dbConfig,
+    defaultDatabase: "postgres", // defaults to "postgres"
+  })
+  await migrate(dbConfig, "path/to/migration/files")
+}
+```
+
+Or, pass a `pg` client:
+
+```typescript
+import {createDb, migrate} from "postgres-migrations"
+
+async function() {
+  const dbConfig = {
     database: "database-name",
     user: "postgres",
     password: "password",
     host: "localhost",
     port: 5432,
-  }, "path/to/migration/files")
-})
-.then(() => {/* ... */})
-.catch((err) => {
-  console.log(err)
-})
+  }
+
+  {
+    const client = new pg.Client({
+      ...dbConfig,
+      database: "postgres",
+    })
+    await client.connect()
+    try {
+      await createDb(databaseName, {client})
+    } finally {
+      await client.end()
+    }
+  }
+
+  {
+    const client = new pg.Client(dbConfig) // or a Pool, or a PoolClient
+    await client.connect()
+    try {
+      await migrate({client}, "path/to/migration/files")
+    } finally {
+      await client.end()
+    }
+  }
+}
 ```
 
 ## Design decisions
@@ -54,7 +92,7 @@ Some migration systems use timestamps for ordering migrations, where the timesta
 
 For example, imagine Developer A creates a migration file in a branch. The next day, Developer B creates a migration in master, and deploys it to production. On day three Developer A merges in their branch and deploys to production.
 
-The production database sees the migrations applied out of order with respect to their creation time. Any new development database will run the migrations in a different order.
+The production database sees the migrations applied out of order with respect to their creation time. Any new development database will run the migrations in the timestamp order.
 
 ### The `migrations` table
 
@@ -74,7 +112,38 @@ An exception is made when `-- postgres-migrations disable-transaction` is includ
 
 ### Abort on errors
 
-If anything fails, the process is aborted by throwing an exception.
+If anything fails, the migration in progress is rolled back and an exception is thrown.
+
+## Concurrency
+
+As of v4, [advisory locks](https://www.postgresql.org/docs/9.4/explicit-locking.html#ADVISORY-LOCKS) are used to control concurrency. If two migration runs are kicked off concurrently, one will wait for the other to finish before starting. Once a process has acquired a lock, it will run each of the pending migrations before releasing the lock again.
+
+Logs from two processes `A` and `B` running concurrently should look something like the following.
+
+```text
+B Connected to database
+B Acquiring advisory lock...
+A Connected to database
+A Acquiring advisory lock...
+B ... aquired advisory lock
+B Starting migrations
+B Starting migration: 2 migration-name
+B Finished migration: 2 migration-name
+B Starting migration: 3 another-migration-name
+B Finished migration: 3 another-migration-name
+B Successfully applied migrations: migration-name, another-migration-name
+B Finished migrations
+B Releasing advisory lock...
+B ... released advisory lock
+A ... aquired advisory lock
+A Starting migrations
+A No migrations applied
+A Finished migrations
+A Releasing advisory lock...
+A ... released advisory lock
+```
+
+Warning: the use of advisory locks will cause problems when using [transaction pooling or statement pooling in PgBouncer](http://www.pgbouncer.org/features.html). A similar system is used in Rails, [see this for an explanation of the problem](https://blog.saeloun.com/2019/09/09/rails-6-disable-advisory-locks.html).
 
 ## Migration rules
 
@@ -102,12 +171,12 @@ A migration file must match the following pattern:
 
 `[id][separator][name][extension]`
 
-| Section | Accepted Values | Description   |
-|   ---   |         ---     |       ---     |
-|   id    |   Any integer or left zero integers      |   Consecutive integer ID. <br />**Must start from 1 and be consecutive, e.g. if you have migrations 1-4, the next one must be 5.** |
-|   separator | `_` or `-` or nothing | |
-|   name    |   Any length text | |
-|   extension   |   `.sql` or `.js` | File extensions supported **not case sensitive** |
+| Section   | Accepted Values                   | Description                                                                                                                      |
+| --------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| id        | Any integer or left zero integers | Consecutive integer ID. <br />**Must start from 1 and be consecutive, e.g. if you have migrations 1-4, the next one must be 5.** |
+| separator | `_` or `-` or nothing             |                                                                                                                                  |
+| name      | Any length text                   |                                                                                                                                  |
+| extension | `.sql` or `.js`                   | File extensions supported **not case sensitive**                                                                                 |
 
 Example:
 
@@ -149,8 +218,8 @@ CREATE TABLE secondary (
 );`
 
 // ./migrations/1-init.js
-const createMainTable = require('./create-main-table')
-const createSecondaryTable = require('./create-secondary-table')
+const createMainTable = require("./create-main-table")
+const createSecondaryTable = require("./create-secondary-table")
 
 module.exports.generateSql = () => `${createMainTable}
 ${createSecondaryTable}`
@@ -163,20 +232,13 @@ If you want sane date handling, it is recommended you use the following code sni
 ```js
 const pg = require("pg")
 
-const parseDate = (val) => val === null ? null : moment(val).format("YYYY-MM-DD")
+const parseDate = val =>
+  val === null ? null : moment(val).format("YYYY-MM-DD")
 const DATATYPE_DATE = 1082
 pg.types.setTypeParser(DATATYPE_DATE, val => {
   return val === null ? null : parseDate(val)
 })
 ```
-
-## Further work
-
-- Ability to force migrations to run (i.e. no hash checks)
-- Ability to run migrations up to a set point (e.g. run to migration 5)
-- Ability to configure timeouts (and add timeout to migrations)
-- Ability to configure migration table name
-- CLI if people want it
 
 ## Useful resources
 

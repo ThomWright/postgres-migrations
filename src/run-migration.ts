@@ -1,13 +1,12 @@
-import {Client} from "pg"
 import SQL from "sql-template-strings"
-import {Logger, Migration} from "./types"
+import {Logger, Migration, BasicPgClient} from "./types"
 
 const noop = () => {
   //
 }
 const insertMigration = async (
   migrationTableName: string,
-  client: Pick<Client, "query">,
+  client: BasicPgClient,
   migration: Migration,
   log: Logger,
 ) => {
@@ -28,7 +27,7 @@ const insertMigration = async (
 
 export const runMigration = (
   migrationTableName: string,
-  client: Pick<Client, "query">,
+  client: BasicPgClient,
   log: Logger = noop,
 ) => async (migration: Migration) => {
   const inTransaction =
@@ -56,8 +55,7 @@ export const runMigration = (
     } catch {
       //
     }
-    throw new Error(`
-An error occurred running '${migration.name}'. Rolled back this migration.
+    throw new Error(`An error occurred running '${migration.name}'. Rolled back this migration.
 No further migrations were run.
 Reason: ${err.message}`)
   }
