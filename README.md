@@ -196,7 +196,7 @@ migrations
 └ 00003_alter-initial-tables-again.js
 ```
 
-Migrations will be performed in the order of the ids.
+Migrations will be performed in the order of the ids. If ids are not consecutive or if multiple migrations have the same id, the migration run will fail.
 
 Note that file names cannot be changed later.
 
