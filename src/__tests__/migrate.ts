@@ -45,6 +45,36 @@ test("concurrent migrations", async t => {
   t.truthy(exists)
 })
 
+// https://github.com/ThomWright/postgres-migrations/issues/36
+test("concurrent migrations - index concurrently", async t => {
+  const databaseName = "migration-test-concurrent-no-tx"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  await createDb(databaseName, dbConfig)
+
+  await migrate(dbConfig, "src/__tests__/fixtures/concurrent")
+
+  // will deadlock if one process has the advisory lock and tries to index concurrently
+  // while the other waits for the advisory lock
+  await Promise.all([
+    migrate(dbConfig, "src/__tests__/fixtures/concurrent-index-2", {
+      logger: msg => console.log("A", msg),
+    }),
+    migrate(dbConfig, "src/__tests__/fixtures/concurrent-index-2", {
+      logger: msg => console.log("B", msg),
+    }),
+  ])
+
+  const exists = await doesTableExist(dbConfig, "concurrent")
+  t.truthy(exists)
+})
+
 // can't test with unconnected client because `pg` just hangs on the first query...
 test("with connected client", async t => {
   const databaseName = "migration-test-with-connected-client"
