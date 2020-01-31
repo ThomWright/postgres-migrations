@@ -37,7 +37,7 @@
     "test-unit": "ava --config ava.config.unit.js",
     "test": "npm run test-unit && npm run lint && npm run test-integration",
     "preversion": "npm test",
-    "build": "rm -rf ./dist && rsync -a --exclude='*.ts' --exclude='__tests__' --prune-empty-dirs src/ dist/ && tsc --project tsconfig-build.json"
+    "build": "rm -rf ./dist && rsync -a --exclude='*.ts' --exclude='__tests__' --exclude='__unit__' --prune-empty-dirs src/ dist/ && tsc --project tsconfig-build.json"
   },
   "husky": {
     "hooks": {
