@@ -120,8 +120,9 @@ async function fetchAppliedMigrationFromDB(
 ) {
   let appliedMigrations = []
   if (await doesTableExist(client, migrationTableName)) {
-    log(`Migrations table with name '${migrationTableName}' exists,
-filtering not applied migrations.`)
+    log(
+      `Migrations table with name '${migrationTableName}' exists, filtering not applied migrations.`,
+    )
 
     const {rows} = await client.query(
       `SELECT * FROM ${migrationTableName} ORDER BY id`,

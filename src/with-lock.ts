@@ -17,6 +17,9 @@ export function withAdvisoryLock<T>(
 
       const result = await f(client)
       return result
+    } catch (e) {
+      log(`Error while using lock: ${e.message}`)
+      throw e
     } finally {
       try {
         log("Releasing advisory lock...")

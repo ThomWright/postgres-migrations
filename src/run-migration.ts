@@ -20,8 +20,6 @@ const insertMigration = async (
       SQL` ("id", "name", "hash") VALUES (${migration.id},${migration.name},${migration.hash})`,
     )
 
-  log(`Executing query: ${sql.text}:${sql.values}`)
-
   return client.query(sql)
 }
 
@@ -55,8 +53,8 @@ export const runMigration = (
     } catch {
       //
     }
-    throw new Error(`An error occurred running '${migration.name}'. Rolled back this migration.
-No further migrations were run.
-Reason: ${err.message}`)
+    throw new Error(
+      `An error occurred running '${migration.name}'. Rolled back this migration. No further migrations were run. Reason: ${err.message}`,
+    )
   }
 }
