@@ -22,7 +22,7 @@ import {createDb, migrate} from "postgres-migrations"
 
 async function() {
   const dbConfig = {
-    database: "database-name"
+    database: "database-name",
     user: "postgres",
     password: "password",
     host: "localhost",
