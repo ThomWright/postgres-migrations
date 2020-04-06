@@ -47,23 +47,23 @@
     }
   },
   "dependencies": {
-    "pg": "^7.14.0",
+    "pg": "^7.18.2",
     "sql-template-strings": "^2.2.2"
   },
   "devDependencies": {
-    "@types/bluebird": "^3.5.29",
-    "@types/node": "^10.17.8",
-    "@types/pg": "^7.11.2",
-    "@types/sinon": "^7.5.1",
+    "@types/bluebird": "^3.5.30",
+    "@types/node": "^10.17.18",
+    "@types/pg": "^7.14.3",
+    "@types/sinon": "^7.5.2",
     "ava": "^2.4.0",
     "fit-commit-js": "^0.3.2",
     "husky": "^3.1.0",
     "prettier": "^1.19.1",
     "sinon": "^7.5.0",
-    "ts-node": "^8.5.4",
+    "ts-node": "^8.8.2",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.7.3",
+    "typescript": "^3.8.3",
     "typescript-tslint-plugin": "^0.5.5"
   }
 }
