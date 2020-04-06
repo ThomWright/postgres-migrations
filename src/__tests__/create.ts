@@ -8,7 +8,7 @@ const CONTAINER_NAME = "pg-migrations-test-create"
 
 let port: number
 
-test.before.cb(t => {
+test.before.cb((t) => {
   port = startPostgres(CONTAINER_NAME, t)
 })
 
@@ -16,7 +16,7 @@ test.after.always(() => {
   stopPostgres(CONTAINER_NAME)
 })
 
-test("with connected client", async t => {
+test("with connected client", async (t) => {
   t.plan(0)
 
   const client = new pg.Client({
@@ -35,7 +35,7 @@ test("with connected client", async t => {
   }
 })
 
-test("successful creation", t => {
+test("successful creation", (t) => {
   t.plan(0)
 
   return createDb("create-test-success", {
@@ -46,7 +46,7 @@ test("successful creation", t => {
   })
 })
 
-test("bad arguments - no database name", t => {
+test("bad arguments - no database name", (t) => {
   return t
     .throwsAsync(
       // tslint:disable-next-line no-any
@@ -57,23 +57,23 @@ test("bad arguments - no database name", t => {
         port,
       }),
     )
-    .then(err => {
+    .then((err) => {
       t.regex(err.message, /database name/)
     })
 })
 
-test("bad arguments - empty db config", t => {
+test("bad arguments - empty db config", (t) => {
   return (
     t
       // tslint:disable-next-line no-any
       .throwsAsync(createDb("create-test-no-config", {} as any))
-      .then(err => {
+      .then((err) => {
         t.regex(err.message, /config/)
       })
   )
 })
 
-test("bad arguments - incorrect user", t => {
+test("bad arguments - incorrect user", (t) => {
   return t
     .throwsAsync(
       createDb("create-test-user", {
@@ -83,12 +83,12 @@ test("bad arguments - incorrect user", t => {
         port,
       }),
     )
-    .then(err => {
+    .then((err) => {
       t.regex(err.message, /nobody/)
     })
 })
 
-test("bad arguments - incorrect password", t => {
+test("bad arguments - incorrect password", (t) => {
   return t
     .throwsAsync(
       createDb("create-test-password", {
@@ -98,12 +98,12 @@ test("bad arguments - incorrect password", t => {
         port,
       }),
     )
-    .then(err => {
+    .then((err) => {
       t.regex(err.message, /password/)
     })
 })
 
-test("bad arguments - incorrect host", t => {
+test("bad arguments - incorrect host", (t) => {
   return t
     .throwsAsync(
       createDb("create-test-host", {
@@ -113,12 +113,12 @@ test("bad arguments - incorrect host", t => {
         port,
       }),
     )
-    .then(err => {
+    .then((err) => {
       t.regex(err.message, /sillyhost/)
     })
 })
 
-test("bad arguments - incorrect port", t => {
+test("bad arguments - incorrect port", (t) => {
   return t
     .throwsAsync(
       createDb("create-test-port", {
@@ -128,12 +128,12 @@ test("bad arguments - incorrect port", t => {
         port: 1234,
       }),
     )
-    .then(err => {
+    .then((err) => {
       t.regex(err.message, /1234/)
     })
 })
 
-test("already created", t => {
+test("already created", (t) => {
   t.plan(0)
   const create = () =>
     createDb("create-test-duplicate", {
@@ -146,7 +146,7 @@ test("already created", t => {
   return create().then(create)
 })
 
-test("database name included in config", t => {
+test("database name included in config", (t) => {
   t.plan(0)
   const create = () =>
     createDb("create-test-db-name", {
@@ -161,7 +161,7 @@ test("database name included in config", t => {
   return create().then(create)
 })
 
-test("custom default database name", t => {
+test("custom default database name", (t) => {
   t.plan(0)
   const create = () =>
     createDb("create-test-default-db", {

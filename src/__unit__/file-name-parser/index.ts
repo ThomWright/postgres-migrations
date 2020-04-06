@@ -2,7 +2,7 @@ import test from "ava"
 
 import {parseFileName} from "../../file-name-parser"
 
-test("parse name: 1.sql", t => {
+test("parse name: 1.sql", (t) => {
   const parsed = parseFileName("1.sql")
   t.deepEqual(
     parsed,
@@ -15,7 +15,7 @@ test("parse name: 1.sql", t => {
   )
 })
 
-test("parse name: 1file.sql", t => {
+test("parse name: 1file.sql", (t) => {
   const parsed = parseFileName("1file.sql")
   t.deepEqual(
     parsed,
@@ -28,7 +28,7 @@ test("parse name: 1file.sql", t => {
   )
 })
 
-test("parse name: 1-file.sql", t => {
+test("parse name: 1-file.sql", (t) => {
   const parsed = parseFileName("1-file.sql")
   t.deepEqual(
     parsed,
@@ -41,7 +41,7 @@ test("parse name: 1-file.sql", t => {
   )
 })
 
-test("parse name: 1_file.sql", t => {
+test("parse name: 1_file.sql", (t) => {
   const parsed = parseFileName("1_file.sql")
   t.deepEqual(
     parsed,
@@ -54,7 +54,7 @@ test("parse name: 1_file.sql", t => {
   )
 })
 
-test("parse name: 1-2_file.sql", t => {
+test("parse name: 1-2_file.sql", (t) => {
   const parsed = parseFileName("1-2_file.sql")
   t.deepEqual(
     parsed,
@@ -67,7 +67,7 @@ test("parse name: 1-2_file.sql", t => {
   )
 })
 
-test("parse name: 1_2_file.sql", t => {
+test("parse name: 1_2_file.sql", (t) => {
   const parsed = parseFileName("1_2_file.sql")
   t.deepEqual(
     parsed,
@@ -80,7 +80,7 @@ test("parse name: 1_2_file.sql", t => {
   )
 })
 
-test("parse name: 1_file.SQL", t => {
+test("parse name: 1_file.SQL", (t) => {
   const parsed = parseFileName("1_file.SQL")
   t.deepEqual(
     parsed,
@@ -93,7 +93,7 @@ test("parse name: 1_file.SQL", t => {
   )
 })
 
-test("parse name: 0001_file.sql", t => {
+test("parse name: 0001_file.sql", (t) => {
   const parsed = parseFileName("0001_file.sql")
   t.deepEqual(
     parsed,
@@ -106,7 +106,7 @@ test("parse name: 0001_file.sql", t => {
   )
 })
 
-test("parse name: not_file.sql", t => {
+test("parse name: not_file.sql", (t) => {
   const err = t.throws(() => parseFileName("not_file.sql"))
 
   t.regex(err.message, /Invalid file name/)

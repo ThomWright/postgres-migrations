@@ -53,7 +53,7 @@ export async function migrate(
   }
 
   const client = new pg.Client(dbConfig)
-  client.on("error", err => {
+  client.on("error", (err) => {
     log(`pg client emitted an error: ${err.message}`)
   })
 

@@ -20,7 +20,7 @@ export const load = async (
   if (fileNames != null) {
     const migrationFiles = [
       path.join(__dirname, "migrations/0_create-migrations-table.sql"),
-      ...fileNames.map(fileName => path.resolve(directory, fileName)),
+      ...fileNames.map((fileName) => path.resolve(directory, fileName)),
     ].filter(isValidFile)
 
     const unorderedMigrations = await Promise.all(

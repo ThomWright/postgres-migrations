@@ -46,7 +46,7 @@ export async function createDb(
     host,
     port,
   })
-  client.on("error", err => {
+  client.on("error", (err) => {
     log(`pg client emitted an error: ${err.message}`)
   })
 
@@ -59,7 +59,7 @@ function betterCreate(dbName: string, log: Logger) {
   return async (client: BasicPgClient): Promise<void> => {
     await client
       .query(`CREATE DATABASE "${dbName.replace(/\"/g, '""')}"`)
-      .catch(e => {
+      .catch((e) => {
         switch (e.code) {
           case DUPLICATE_DATABASE: {
             log(`'${dbName}' database already exists`)

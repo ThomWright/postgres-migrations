@@ -16,7 +16,7 @@ export function withAdvisoryLock<T>(
           if (lockResult.rows[0].pg_try_advisory_lock === true) {
             acquired = true
           } else {
-            await new Promise(res => setTimeout(res, 1000))
+            await new Promise((res) => setTimeout(res, 1000))
           }
         }
         log("... aquired advisory lock")

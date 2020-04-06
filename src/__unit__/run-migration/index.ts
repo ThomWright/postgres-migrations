@@ -15,12 +15,12 @@ let noTransactionSqlFile: string
 
 test.before(async () => {
   await Promise.all([
-    readFile(__dirname + "/fixtures/normal.sql", "utf8").then(contents => {
+    readFile(__dirname + "/fixtures/normal.sql", "utf8").then((contents) => {
       normalSqlFile = contents
     }),
 
     readFile(__dirname + "/fixtures/no-transaction.sql", "utf8").then(
-      contents => {
+      (contents) => {
         noTransactionSqlFile = contents
       },
     ),
@@ -43,7 +43,7 @@ function buildMigration(sql: string): Migration {
 }
 const migrationTableName = "migrations"
 
-test("runs a simple migration", t => {
+test("runs a simple migration", (t) => {
   const query = sinon.stub().resolves()
   const run = runMigration(migrationTableName, {query})
 
@@ -73,7 +73,7 @@ test("runs a simple migration", t => {
   })
 })
 
-test("runs a simple js migration", t => {
+test("runs a simple js migration", (t) => {
   const query = sinon.stub().resolves()
   const run = runMigration(migrationTableName, {query})
 
@@ -103,14 +103,14 @@ test("runs a simple js migration", t => {
   })
 })
 
-test("rolls back when there is an error inside a transactiony migration", async t => {
+test("rolls back when there is an error inside a transactiony migration", async (t) => {
   const query = sinon.stub().rejects(new Error("There was a problem"))
   const run = runMigration(migrationTableName, {query})
 
   const migration = buildMigration(normalSqlFile)
   t.plan(2)
 
-  await run(migration).catch(e => {
+  await run(migration).catch((e) => {
     t.is(query.lastCall.args[0], "ROLLBACK", "should perform a rollback")
     t.true(
       e.message.indexOf("There was a problem") >= 0,
@@ -119,7 +119,7 @@ test("rolls back when there is an error inside a transactiony migration", async 
   })
 })
 
-test("does not run the migration in a transaction when instructed", async t => {
+test("does not run the migration in a transaction when instructed", async (t) => {
   const query = sinon.stub().resolves()
   const run = runMigration(migrationTableName, {query})
 
@@ -138,13 +138,13 @@ test("does not run the migration in a transaction when instructed", async t => {
   })
 })
 
-test("does not roll back when there is an error inside a transactiony migration", async t => {
+test("does not roll back when there is an error inside a transactiony migration", async (t) => {
   const query = sinon.stub().rejects(new Error("There was a problem"))
   const run = runMigration(migrationTableName, {query})
 
   const migration = buildMigration(noTransactionSqlFile)
 
-  await run(migration).catch(e => {
+  await run(migration).catch((e) => {
     sinon.assert.neverCalledWith(query, "ROLLBACK")
     t.true(
       e.message.indexOf("There was a problem") >= 0,

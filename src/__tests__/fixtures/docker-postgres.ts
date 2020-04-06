@@ -33,7 +33,7 @@ export const startPostgres = (containerName: string, t: CbExecutionContext) => {
       "--filter",
       "event=health_status",
     ])
-    events.stdout.on("data", data => {
+    events.stdout.on("data", (data) => {
       const dataString = data.toString()
 
       if (dataString.includes("health_status: healthy")) {
@@ -42,7 +42,7 @@ export const startPostgres = (containerName: string, t: CbExecutionContext) => {
         t.end()
       }
     })
-    events.on("error", err => {
+    events.on("error", (err) => {
       console.error("Error in 'docker events' process:", err)
       events.kill()
       t.fail(err.message)

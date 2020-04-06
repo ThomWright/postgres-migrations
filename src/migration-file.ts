@@ -12,10 +12,7 @@ const getFileName = (filePath: string) => path.basename(filePath)
 const getFileContents = async (filePath: string) => readFile(filePath, "utf8")
 
 const hashString = (s: string) =>
-  crypto
-    .createHash("sha1")
-    .update(s, "utf8")
-    .digest("hex")
+  crypto.createHash("sha1").update(s, "utf8").digest("hex")
 
 const getSqlStringLiteral = (
   filePath: string,
