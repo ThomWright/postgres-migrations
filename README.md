@@ -76,6 +76,24 @@ async function() {
 }
 ```
 
+You can pass a custom migration table name:
+
+```typescript
+await migrate(dbConfig, "path/to/migration/files", {
+  migrationTableName: "my_migrations",
+})
+```
+
+This could, alternatively, be a table in an existing schema:
+
+```typescript
+await createDb(databaseName, {client})
+await client.query("CREATE SCHEMA IF NOT EXISTS my_schema")
+await migrate(dbConfig, "path/to/migration/files", {
+  migrationTableName: "my_schema.migrations",
+})
+```
+
 ## Design decisions
 
 ### No down migrations

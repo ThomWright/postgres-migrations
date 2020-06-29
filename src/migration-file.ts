@@ -18,12 +18,13 @@ const getSqlStringLiteral = (
   filePath: string,
   contents: string,
   type: "js" | "sql",
+  context?: {},
 ) => {
   switch (type) {
     case "sql":
       return contents
     case "js":
-      return loadSqlFromJs(filePath)
+      return loadSqlFromJs(filePath, context)
     default: {
       const exhaustiveCheck: never = type
       return exhaustiveCheck
@@ -31,13 +32,19 @@ const getSqlStringLiteral = (
   }
 }
 
-export const load = async (filePath: string) => {
+export const load = async ({
+  filePath,
+  context,
+}: {
+  filePath: string
+  context?: {}
+}) => {
   const fileName = getFileName(filePath)
 
   try {
     const {id, name, type} = parseFileName(fileName)
     const contents = await getFileContents(filePath)
-    const sql = getSqlStringLiteral(filePath, contents, type)
+    const sql = getSqlStringLiteral(filePath, contents, type, context)
     const hash = hashString(fileName + sql)
 
     return {

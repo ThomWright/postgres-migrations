@@ -1,6 +1,6 @@
 import * as path from "path"
 
-export const loadSqlFromJs = (filePath: string): string => {
+export const loadSqlFromJs = (filePath: string, context?: {}): string => {
   const migrationModule = require(filePath)
   if (!migrationModule.generateSql) {
     throw new Error(`Invalid javascript migration file: '${path.basename(
@@ -8,7 +8,7 @@ export const loadSqlFromJs = (filePath: string): string => {
     )}'.
 It must to export a 'generateSql' function.`)
   }
-  const generatedValue = migrationModule.generateSql()
+  const generatedValue = migrationModule.generateSql(context)
   if (typeof generatedValue !== "string") {
     throw new Error(`Invalid javascript migration file: '${path.basename(
       filePath,

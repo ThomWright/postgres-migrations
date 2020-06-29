@@ -11,6 +11,7 @@ const isValidFile = (fileName: string) => /\.(sql|js)$/gi.test(fileName)
 export const load = async (
   directory: string,
   log: Logger,
+  setupContext: {migrationTableName: string},
 ): Promise<Array<Migration>> => {
   log(`Loading migrations from: ${directory}`)
 
@@ -19,9 +20,17 @@ export const load = async (
 
   if (fileNames != null) {
     const migrationFiles = [
-      path.join(__dirname, "migrations/0_create-migrations-table.sql"),
-      ...fileNames.map((fileName) => path.resolve(directory, fileName)),
-    ].filter(isValidFile)
+      {
+        filePath: path.join(
+          __dirname,
+          "migrations/0_create-migrations-table.js",
+        ),
+        context: setupContext,
+      },
+      ...fileNames.map((fileName) => ({
+        filePath: path.resolve(directory, fileName),
+      })),
+    ].filter(({filePath}) => isValidFile(filePath))
 
     const unorderedMigrations = await Promise.all(
       migrationFiles.map(loadMigrationFile),

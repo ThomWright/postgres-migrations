@@ -190,6 +190,57 @@ test("with pool client", async (t) => {
   }
 })
 
+test("with custom migration table name", async (t) => {
+  const databaseName = "migration-test-concurrent-no-tx"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  const migrateWithCustomMigrationTable = () =>
+    migrate(dbConfig, "src/__tests__/fixtures/success-first", {
+      migrationTableName: "my_migrations",
+    })
+
+  await createDb(databaseName, dbConfig)
+  await migrateWithCustomMigrationTable()
+
+  t.truthy(await doesTableExist(dbConfig, "my_migrations"))
+  t.truthy(await doesTableExist(dbConfig, "success"))
+
+  await migrateWithCustomMigrationTable()
+})
+
+test("with custom migration table name in a custom schema", async (t) => {
+  const databaseName = "migration-test-concurrent-no-tx"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  const migrateWithCustomMigrationTable = () =>
+    migrate(dbConfig, "src/__tests__/fixtures/success-first", {
+      migrationTableName: "my_schema.my_migrations",
+    })
+
+  const pool = new pg.Pool(dbConfig)
+
+  await pool.query("CREATE SCHEMA my_schema")
+  await createDb(databaseName, dbConfig)
+  await migrateWithCustomMigrationTable()
+
+  t.truthy(await doesTableExist(dbConfig, "my_schema.my_migrations"))
+  t.truthy(await doesTableExist(dbConfig, "success"))
+
+  await migrateWithCustomMigrationTable()
+})
+
 test("successful first migration", (t) => {
   const databaseName = "migration-test-success-first"
   const dbConfig = {
@@ -636,12 +687,7 @@ function doesTableExist(dbConfig: pg.ClientConfig, tableName: string) {
     .connect()
     .then(() =>
       client.query(SQL`
-        SELECT EXISTS (
-          SELECT 1
-          FROM   pg_catalog.pg_class c
-          WHERE  c.relname = ${tableName}
-          AND    c.relkind = 'r'
-        );
+        SELECT to_regclass(${tableName}) as matching_tables
       `),
     )
     .then((result) => {
@@ -649,15 +695,19 @@ function doesTableExist(dbConfig: pg.ClientConfig, tableName: string) {
         return client
           .end()
           .then(() => {
-            return result.rows.length > 0 && result.rows[0].exists
+            return (
+              result.rows.length > 0 && result.rows[0].matching_tables !== null
+            )
           })
           .catch((error) => {
             console.log("Async error in 'doesTableExist", error)
-            return result.rows.length > 0 && result.rows[0].exists
+            return (
+              result.rows.length > 0 && result.rows[0].matching_tables !== null
+            )
           })
       } catch (error) {
         console.log("Sync error in 'doesTableExist", error)
-        return result.rows.length > 0 && result.rows[0].exists
+        return result.rows.length > 0 && result.rows[0].matching_tables !== null
       }
     })
 }
