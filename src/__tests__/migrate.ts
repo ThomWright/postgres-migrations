@@ -191,7 +191,7 @@ test("with pool client", async (t) => {
 })
 
 test("with custom migration table name", async (t) => {
-  const databaseName = "migration-test-concurrent-no-tx"
+  const databaseName = "migration-test-custom-migration-table"
   const dbConfig = {
     database: databaseName,
     user: "postgres",
@@ -215,7 +215,7 @@ test("with custom migration table name", async (t) => {
 })
 
 test("with custom migration table name in a custom schema", async (t) => {
-  const databaseName = "migration-test-concurrent-no-tx"
+  const databaseName = "migration-test-custom-schema-custom-migration-table"
   const dbConfig = {
     database: databaseName,
     user: "postgres",
@@ -231,14 +231,18 @@ test("with custom migration table name in a custom schema", async (t) => {
 
   const pool = new pg.Pool(dbConfig)
 
-  await pool.query("CREATE SCHEMA my_schema")
-  await createDb(databaseName, dbConfig)
-  await migrateWithCustomMigrationTable()
+  try {
+    await createDb(databaseName, dbConfig)
+    await pool.query("CREATE SCHEMA IF NOT EXISTS my_schema")
+    await migrateWithCustomMigrationTable()
 
-  t.truthy(await doesTableExist(dbConfig, "my_schema.my_migrations"))
-  t.truthy(await doesTableExist(dbConfig, "success"))
+    t.truthy(await doesTableExist(dbConfig, "my_schema.my_migrations"))
+    t.truthy(await doesTableExist(dbConfig, "success"))
 
-  await migrateWithCustomMigrationTable()
+    await migrateWithCustomMigrationTable()
+  } finally {
+    await pool.end()
+  }
 })
 
 test("successful first migration", (t) => {
