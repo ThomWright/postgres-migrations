@@ -2,6 +2,7 @@ import * as fs from "fs"
 import * as path from "path"
 import {promisify} from "util"
 import {load as loadMigrationFile} from "./migration-file"
+import {loadInitialMigration} from "./initial-migration"
 import {Logger, Migration} from "./types"
 
 const readDir = promisify(fs.readdir)
@@ -11,7 +12,7 @@ const isValidFile = (fileName: string) => /\.(sql|js)$/gi.test(fileName)
 export const load = async (
   directory: string,
   log: Logger,
-  setupContext: {migrationTableName: string},
+  migrationTableName: string,
 ): Promise<Array<Migration>> => {
   log(`Loading migrations from: ${directory}`)
 
@@ -19,25 +20,21 @@ export const load = async (
   log(`Found migration files: ${fileNames}`)
 
   if (fileNames != null) {
-    const migrationFiles = [
-      {
-        filePath: path.join(
-          __dirname,
-          "migrations/0_create-migrations-table.js",
-        ),
-        context: setupContext,
-      },
-      ...fileNames.map((fileName) => ({
-        filePath: path.resolve(directory, fileName),
-      })),
-    ].filter(({filePath}) => isValidFile(filePath))
+    const migrationFiles = fileNames
+      .map((fileName) => path.resolve(directory, fileName))
+      .filter(isValidFile)
 
     const unorderedMigrations = await Promise.all(
       migrationFiles.map(loadMigrationFile),
     )
 
+    const initialMigration = await loadInitialMigration(migrationTableName)
+
     // Arrange in ID order
-    return unorderedMigrations.sort((a, b) => a.id - b.id)
+    return [
+      initialMigration,
+      ...unorderedMigrations.sort((a, b) => a.id - b.id),
+    ]
   }
 
   return []

@@ -339,6 +339,31 @@ test("successful complex js migration", (t) => {
     })
 })
 
+test("successful migration on an existing database", async (t) => {
+  const databaseName = "migration-test-success-existing-db"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  const pool = new pg.Pool(dbConfig)
+
+  try {
+    await createDb(databaseName, dbConfig)
+    await pool.query(require("./fixtures/success-existing-db/restore.sql"))
+    await migrate(
+      dbConfig,
+      "src/__tests__/fixtures/success-existing-db/migrations",
+    )
+    t.truthy(await doesTableExist(dbConfig, "success"))
+  } finally {
+    await pool.end()
+  }
+})
+
 test("bad arguments - no db config", (t) => {
   // tslint:disable-next-line no-any
   return t.throwsAsync((migrate as any)()).then((err) => {

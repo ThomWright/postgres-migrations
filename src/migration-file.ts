@@ -11,7 +11,7 @@ const getFileName = (filePath: string) => path.basename(filePath)
 
 const getFileContents = async (filePath: string) => readFile(filePath, "utf8")
 
-const hashString = (s: string) =>
+export const hashString = (s: string) =>
   crypto.createHash("sha1").update(s, "utf8").digest("hex")
 
 const getSqlStringLiteral = (
@@ -32,19 +32,13 @@ const getSqlStringLiteral = (
   }
 }
 
-export const load = async ({
-  filePath,
-  context,
-}: {
-  filePath: string
-  context?: {}
-}) => {
+export const load = async (filePath: string) => {
   const fileName = getFileName(filePath)
 
   try {
     const {id, name, type} = parseFileName(fileName)
     const contents = await getFileContents(filePath)
-    const sql = getSqlStringLiteral(filePath, contents, type, context)
+    const sql = getSqlStringLiteral(filePath, contents, type)
     const hash = hashString(fileName + sql)
 
     return {
