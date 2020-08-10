@@ -1,6 +1,6 @@
 {
   "name": "postgres-migrations",
-  "version": "4.0.3",
+  "version": "5.0.0",
   "description": "Stack Overflow style database migrations for PostgreSQL",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
