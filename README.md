@@ -250,4 +250,4 @@ pg.types.setTypeParser(DATATYPE_DATE, val => {
 
 ## Developing `postgres-migrations`
 
-The tests require Docker to be installed.
+The tests require Docker to be installed. It probably helps to `docker pull postgres:9.4`.
