@@ -32,7 +32,7 @@
     "check-formatting": "./node_modules/.bin/prettier '**/*.ts' --list-different",
     "fix-formatting": "./node_modules/.bin/prettier '**/*.ts' --write",
     "lint": "npm run tslint && npm run check-formatting",
-    "tslint": "tslint 'src/**/*.ts' --type-check --project tsconfig.json --format verbose",
+    "tslint": "tslint 'src/**/*.ts' --project tsconfig.json --format verbose",
     "test-integration": "ava --config ava.config.integration.cjs",
     "test-unit": "ava --config ava.config.unit.cjs",
     "test": "npm run test-unit && npm run lint && npm run test-integration",

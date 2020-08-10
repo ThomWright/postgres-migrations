@@ -11,19 +11,20 @@ const getFileName = (filePath: string) => path.basename(filePath)
 
 const getFileContents = async (filePath: string) => readFile(filePath, "utf8")
 
-const hashString = (s: string) =>
+export const hashString = (s: string) =>
   crypto.createHash("sha1").update(s, "utf8").digest("hex")
 
 const getSqlStringLiteral = (
   filePath: string,
   contents: string,
   type: "js" | "sql",
+  context?: {},
 ) => {
   switch (type) {
     case "sql":
       return contents
     case "js":
-      return loadSqlFromJs(filePath)
+      return loadSqlFromJs(filePath, context)
     default: {
       const exhaustiveCheck: never = type
       return exhaustiveCheck
