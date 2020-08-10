@@ -1,5 +1,9 @@
 # Changelog
 
+## V5
+
+- [BREAKING] Update `pg` to version 8. See the [pg changelog](https://github.com/brianc/node-postgres/blob/master/CHANGELOG.md#pg800) for details.
+
 ## V4
 
 - [BREAKING] Updated whole project to TypeScript
