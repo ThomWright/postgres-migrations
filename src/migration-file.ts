@@ -49,9 +49,6 @@ export const load = async (filePath: string) => {
       sql,
     }
   } catch (err) {
-    throw new Error(`${err.message}
-Offending file: '${fileName}'.`)
+    throw new Error(`${err.message} - Offending file: '${fileName}'.`)
   }
 }
-
-// module.exports._fileNameParser = fileNameParser

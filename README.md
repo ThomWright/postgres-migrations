@@ -76,6 +76,27 @@ async function() {
 }
 ```
 
+### Validating migration files
+
+Occasionally, if two people are working on the same codebase independently, they might both create a migration at the same time. For example, `5_add-table.sql` and `5_add-column.sql`. If these both get pushed, there will be a conflict.
+
+While the migration system will notice this and refuse to apply the migrations, it can be useful to catch this as early as possible.
+
+The `loadMigrationFiles` function can be used to check if the migration files satisfy the rules.
+
+```typescript
+import {loadMigrationFiles} from "postgres-migrations"
+
+async function validateMigrations() {
+  try {
+    await loadMigrationFiles("path/to/migration/files")
+  } catch (e) {
+    // Oh no! Something isn't right with the migration files.
+    throw e
+  }
+}
+```
+
 ## Design decisions
 
 ### No down migrations

@@ -1,10 +1,15 @@
 # Changelog
 
-## V5
+## 5.1.0
+
+- Validate migration ordering when loading files (instead of when applying migrations)
+- Expose `loadMigrationFiles` publicly, which can be used to validate files in e.g. a pre-push hook
+
+## 5.0.0
 
 - [BREAKING] Update `pg` to version 8. See the [pg changelog](https://github.com/brianc/node-postgres/blob/master/CHANGELOG.md#pg800) for details.
 
-## V4
+## 4.0.0
 
 - [BREAKING] Updated whole project to TypeScript
   - some types might differ, no functional change

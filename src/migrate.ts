@@ -10,6 +10,7 @@ import {
   Migration,
   MigrationError,
 } from "./types"
+import {validateMigrationHashes} from "./validation"
 import {withConnection} from "./with-connection"
 import {withAdvisoryLock} from "./with-lock"
 
@@ -78,7 +79,7 @@ function runMigrations(intendedMigrations: Array<Migration>, log: Logger) {
         log,
       )
 
-      validateMigrations(intendedMigrations, appliedMigrations)
+      validateMigrationHashes(intendedMigrations, appliedMigrations)
 
       const migrationsToRun = filterMigrations(
         intendedMigrations,
@@ -133,36 +134,6 @@ async function fetchAppliedMigrationFromDB(
 so the database is new and we need to run all migrations.`)
   }
   return appliedMigrations
-}
-
-/** Validates mutation order and hash */
-function validateMigrations(
-  migrations: Array<Migration>,
-  appliedMigrations: Record<number, Migration | undefined>,
-) {
-  const indexNotMatch = (migration: Migration, index: number) =>
-    migration.id !== index
-  const invalidHash = (migration: Migration) => {
-    const appliedMigration = appliedMigrations[migration.id]
-    return appliedMigration != null && appliedMigration.hash !== migration.hash
-  }
-
-  // Assert migration IDs are consecutive integers
-  const notMatchingId = migrations.find(indexNotMatch)
-  if (notMatchingId) {
-    throw new Error(
-      `Found a non-consecutive migration ID on file: '${notMatchingId.fileName}'`,
-    )
-  }
-
-  // Assert migration hashes are still same
-  const invalidHashes = migrations.filter(invalidHash)
-  if (invalidHashes.length > 0) {
-    // Someone has altered one or more migrations which has already run - gasp!
-    const invalidFiles = invalidHashes.map(({fileName}) => fileName)
-    throw new Error(`Hashes don't match for migrations '${invalidFiles}'.
-This means that the scripts have changed since it was applied.`)
-  }
 }
 
 /** Work out which migrations to apply */
