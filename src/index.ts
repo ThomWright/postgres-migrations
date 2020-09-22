@@ -1,6 +1,6 @@
 export {createDb} from "./create"
 export {migrate} from "./migrate"
-export {load as loadMigrationFiles} from "./files-loader"
+export {loadMigrationFiles} from "./files-loader"
 
 export {
   ConnectionParams,

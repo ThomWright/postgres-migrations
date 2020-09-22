@@ -4,6 +4,7 @@
 
 - Validate migration ordering when loading files (instead of when applying migrations)
 - Expose `loadMigrationFiles` publicly, which can be used to validate files in e.g. a pre-push hook
+- Add `pg-validate-migrations` bin script
 
 ## 5.0.0
 

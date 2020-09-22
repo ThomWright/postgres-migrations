@@ -1,6 +1,6 @@
 import * as pg from "pg"
 import SQL from "sql-template-strings"
-import {load} from "./files-loader"
+import {loadMigrationFiles} from "./files-loader"
 import {runMigration} from "./run-migration"
 import {
   BasicPgClient,
@@ -33,7 +33,7 @@ export async function migrate(
   if (typeof migrationsDirectory !== "string") {
     throw new Error("Must pass migrations directory as a string")
   }
-  const intendedMigrations = await load(migrationsDirectory, log)
+  const intendedMigrations = await loadMigrationFiles(migrationsDirectory, log)
 
   if ("client" in dbConfig) {
     // we have been given a client to use, it should already be connected
