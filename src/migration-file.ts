@@ -31,7 +31,7 @@ const getSqlStringLiteral = (
   }
 }
 
-export const load = async (filePath: string) => {
+export const loadMigrationFile = async (filePath: string) => {
   const fileName = getFileName(filePath)
 
   try {

@@ -84,18 +84,7 @@ While the migration system will notice this and refuse to apply the migrations, 
 
 The `loadMigrationFiles` function can be used to check if the migration files satisfy the rules.
 
-```typescript
-import {loadMigrationFiles} from "postgres-migrations"
-
-async function validateMigrations() {
-  try {
-    await loadMigrationFiles("path/to/migration/files")
-  } catch (e) {
-    // Oh no! Something isn't right with the migration files.
-    throw e
-  }
-}
-```
+Alternatively, use the `pg-validate-migrations` bin script: `pg-validate-migrations "path/to/migration/files"`.
 
 ## Design decisions
 

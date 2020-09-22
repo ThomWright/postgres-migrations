@@ -1,7 +1,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import {promisify} from "util"
-import {load as loadMigrationFile} from "./migration-file"
+import {loadMigrationFile} from "./migration-file"
 import {Logger, Migration} from "./types"
 import {validateMigrationOrdering} from "./validation"
 
@@ -17,7 +17,7 @@ const isValidFile = (fileName: string) => /\.(sql|js)$/gi.test(fileName)
  *
  * No assertions are made about the validity of the SQL.
  */
-export const load = async (
+export const loadMigrationFiles = async (
   directory: string,
   // tslint:disable-next-line no-empty
   log: Logger = () => {},
