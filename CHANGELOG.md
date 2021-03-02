@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.3.0
+
+- [DEPRECATION] Deprecate `createDb`
+- Add `ensureDatabaseExists` to check/create database in `migrate`
+
 ## 5.1.0
 
 - Validate migration ordering when loading files (instead of when applying migrations)

@@ -4,6 +4,9 @@ import {withConnection} from "./with-connection"
 
 const DUPLICATE_DATABASE = "42P04"
 
+/**
+ * @deprecated Use `migrate` instead with `ensureDatabaseExists: true`.
+ */
 export async function createDb(
   dbName: string,
   dbConfig: CreateDBConfig,
@@ -25,7 +28,7 @@ export async function createDb(
   }
 
   if ("client" in dbConfig) {
-    return betterCreate(dbName, log)(dbConfig.client)
+    return runCreateQuery(dbName, log)(dbConfig.client)
   }
 
   if (
@@ -50,12 +53,12 @@ export async function createDb(
     log(`pg client emitted an error: ${err.message}`)
   })
 
-  const runWith = withConnection(log, betterCreate(dbName, log))
+  const runWith = withConnection(log, runCreateQuery(dbName, log))
 
   return runWith(client)
 }
 
-function betterCreate(dbName: string, log: Logger) {
+export function runCreateQuery(dbName: string, log: Logger) {
   return async (client: BasicPgClient): Promise<void> => {
     await client
       .query(`CREATE DATABASE "${dbName.replace(/\"/g, '""')}"`)
