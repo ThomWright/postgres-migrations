@@ -7,6 +7,15 @@
 
 A PostgreSQL migration library inspired by the Stack Overflow system described in [Nick Craver's blog](http://nickcraver.com/blog/2016/05/03/stack-overflow-how-we-do-deployment-2016-edition/#database-migrations).
 
+Migrations are defined in sequential SQL files, for example:
+
+```text
+migrations
+├ 1_create-table.sql
+├ 2_alter-table.sql
+└ 3_add-index.sql
+```
+
 Requires Node 10.17.0+
 
 Supports PostgreSQL 9.4+
@@ -114,9 +123,9 @@ Previously run migration scripts shouldn't be modified, since we want the proces
 
 This is enforced by hashing the file contents of a migration script and storing this in `migrations` table. Before running a migration, the previously run scripts are hashed and checked against the database to ensure they haven't changed.
 
-### Each migration run in a transaction
+### Each migration runs in a transaction
 
-Ensures each migration is atomic. Either it completes successfully, or it is rolled back and the process is aborted.
+Running in a transaction ensures each migration is atomic. Either it completes successfully, or it is rolled back and the process is aborted.
 
 An exception is made when `-- postgres-migrations disable-transaction` is included at the top of the migration file. This allows migrations such as `CREATE INDEX CONCURRENTLY` which cannot be run inside a transaction.
 
