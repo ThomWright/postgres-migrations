@@ -19,7 +19,7 @@ export function withAdvisoryLock<T>(
             await new Promise((res) => setTimeout(res, 1000))
           }
         }
-        log("... aquired advisory lock")
+        log("... acquired advisory lock")
       } catch (e) {
         log(`Error acquiring advisory lock: ${e.message}`)
         throw e

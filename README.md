@@ -144,7 +144,7 @@ B Connected to database
 B Acquiring advisory lock...
 A Connected to database
 A Acquiring advisory lock...
-B ... aquired advisory lock
+B ... acquired advisory lock
 B Starting migrations
 B Starting migration: 2 migration-name
 B Finished migration: 2 migration-name
@@ -154,7 +154,7 @@ B Successfully applied migrations: migration-name, another-migration-name
 B Finished migrations
 B Releasing advisory lock...
 B ... released advisory lock
-A ... aquired advisory lock
+A ... acquired advisory lock
 A Starting migrations
 A No migrations applied
 A Finished migrations
