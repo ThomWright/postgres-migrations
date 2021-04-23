@@ -195,7 +195,7 @@ A migration file must match the following pattern:
 | id        | Any integer or left zero integers | Consecutive integer ID. <br />**Must start from 1 and be consecutive, e.g. if you have migrations 1-4, the next one must be 5.** |
 | separator | `_` or `-` or nothing             |                                                                                                                                  |
 | name      | Any length text                   |                                                                                                                                  |
-| extension | `.sql` or `.js`                   | File extensions supported **not case sensitive**                                                                                 |
+| extension | `.sql` or `.js`                   | File extensions supported. **Case insensitive.**                                                                                 |
 
 Example:
 
