@@ -50,23 +50,22 @@
     }
   },
   "dependencies": {
-    "pg": "^8.5.1",
+    "pg": "^8.6.0",
     "sql-template-strings": "^2.2.2"
   },
   "devDependencies": {
-    "@types/bluebird": "^3.5.33",
-    "@types/node": "^10.17.51",
-    "@types/pg": "^7.14.8",
-    "@types/sinon": "^9.0.10",
+    "@types/node": "^10.17.60",
+    "@types/pg": "^7.14.11",
+    "@types/sinon": "^9.0.11",
     "ava": "^3.15.0",
     "fit-commit-js": "^0.3.2",
     "husky": "^3.1.0",
-    "prettier": "^2.2.1",
-    "sinon": "^9.2.3",
+    "prettier": "^2.3.1",
+    "sinon": "^9.2.4",
     "ts-node": "^8.10.2",
     "tslint": "^6.1.3",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.9.7",
+    "typescript": "^3.9.10",
     "typescript-tslint-plugin": "^0.5.5"
   }
 }
