@@ -14,6 +14,8 @@ const getFileContents = async (filePath: string) => readFile(filePath, "utf8")
 const hashString = (s: string) =>
   crypto.createHash("sha1").update(s, "utf8").digest("hex")
 
+const convertEndings = (content: string) => content.replace(/\r\n|\r/g, "\n")
+
 const getSqlStringLiteral = (
   filePath: string,
   contents: string,
@@ -21,9 +23,9 @@ const getSqlStringLiteral = (
 ) => {
   switch (type) {
     case "sql":
-      return contents
+      return convertEndings(contents)
     case "js":
-      return loadSqlFromJs(filePath)
+      return convertEndings(loadSqlFromJs(filePath))
     default: {
       const exhaustiveCheck: never = type
       return exhaustiveCheck
