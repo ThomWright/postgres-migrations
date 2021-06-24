@@ -160,14 +160,13 @@ function logResult(completedMigrations: Array<Migration>, log: Logger) {
   }
 }
 
-/** Check whether table exists in postgres - http://stackoverflow.com/a/24089729 */
+/** Check whether table exists in postgres in the current search path
+ * http://stackoverflow.com/a/24089729
+ * https://dba.stackexchange.com/a/86098
+ */
 async function doesTableExist(client: BasicPgClient, tableName: string) {
-  const result = await client.query(SQL`SELECT EXISTS (
-  SELECT 1
-  FROM   pg_catalog.pg_class c
-  WHERE  c.relname = ${tableName}
-  AND    c.relkind = 'r'
-);`)
-
+  const result = await client.query(
+    SQL`SELECT to_regclass(${tableName}) is not NULL as exists;`,
+  )
   return result.rows.length > 0 && result.rows[0].exists
 }
