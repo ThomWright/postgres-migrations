@@ -21,6 +21,26 @@ export interface ClientParams {
   readonly client: pg.Client | pg.PoolClient | pg.Pool
 }
 
+export type EnsureDatabase =
+  | {
+      /**
+       * Might default to `true` in future versions
+       * @default false
+       */
+      readonly ensureDatabaseExists: true
+      /**
+       * The database to connect to when creating a database (if necessary).
+       * @default postgres
+       */
+      readonly defaultDatabase?: string
+    }
+  | {
+      readonly ensureDatabaseExists?: false
+    }
+
+/**
+ * @deprecated Use `migrate` instead with `ensureDatabaseExists: true`.
+ */
 export type CreateDBConfig =
   | (ConnectionParams & {
       /** The database to connect to when creating the new database. */
@@ -31,7 +51,7 @@ export type CreateDBConfig =
 export type MigrateDBConfig =
   | (ConnectionParams & {
       readonly database: string
-    })
+    } & EnsureDatabase)
   | ClientParams
 
 export type Logger = (msg: string) => void

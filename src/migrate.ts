@@ -1,5 +1,6 @@
 import * as pg from "pg"
 import SQL from "sql-template-strings"
+import {runCreateQuery} from "./create"
 import {loadMigrationFiles} from "./files-loader"
 import {runMigration} from "./run-migration"
 import {
@@ -14,6 +15,17 @@ import {validateMigrationHashes} from "./validation"
 import {withConnection} from "./with-connection"
 import {withAdvisoryLock} from "./with-lock"
 
+/**
+ * Run the migrations.
+ *
+ * If `dbConfig.ensureDatabaseExists` is true then `dbConfig.database` will be created if it
+ * does not exist.
+ *
+ * @param dbConfig Details about how to connect to the database
+ * @param migrationsDirectory Directory containing the SQL migration files
+ * @param config Extra configuration
+ * @returns Details about the migrations which were run
+ */
 export async function migrate(
   dbConfig: MigrateDBConfig,
   migrationsDirectory: string,
@@ -53,17 +65,45 @@ export async function migrate(
     throw new Error("Database config problem")
   }
 
-  const client = new pg.Client(dbConfig)
-  client.on("error", (err) => {
-    log(`pg client emitted an error: ${err.message}`)
-  })
+  if (dbConfig.ensureDatabaseExists === true) {
+    // Check whether database exists
+    const {user, password, host, port} = dbConfig
+    const client = new pg.Client({
+      database:
+        dbConfig.defaultDatabase != null
+          ? dbConfig.defaultDatabase
+          : "postgres",
+      user,
+      password,
+      host,
+      port,
+    })
 
-  const runWith = withConnection(
-    log,
-    withAdvisoryLock(log, runMigrations(intendedMigrations, log)),
-  )
+    const runWith = withConnection(log, async (connectedClient) => {
+      const result = await connectedClient.query({
+        text: "SELECT 1 FROM pg_database WHERE datname=$1",
+        values: [dbConfig.database],
+      })
+      if (result.rowCount !== 1) {
+        await runCreateQuery(dbConfig.database, log)(connectedClient)
+      }
+    })
 
-  return runWith(client)
+    await runWith(client)
+  }
+  {
+    const client = new pg.Client(dbConfig)
+    client.on("error", (err) => {
+      log(`pg client emitted an error: ${err.message}`)
+    })
+
+    const runWith = withConnection(
+      log,
+      withAdvisoryLock(log, runMigrations(intendedMigrations, log)),
+    )
+
+    return runWith(client)
+  }
 }
 
 function runMigrations(intendedMigrations: Array<Migration>, log: Logger) {

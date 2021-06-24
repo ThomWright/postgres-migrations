@@ -27,7 +27,7 @@ There are two ways to use the API.
 Either, pass a database connection config object:
 
 ```typescript
-import {createDb, migrate} from "postgres-migrations"
+import {migrate} from "postgres-migrations"
 
 async function() {
   const dbConfig = {
@@ -36,12 +36,16 @@ async function() {
     password: "password",
     host: "localhost",
     port: 5432,
+
+    // Default: false for backwards-compatibility
+    // This might change!
+    ensureDatabaseExists: true
+
+    // Default: "postgres"
+    // Used when checking/creating "database-name"
+    defaultDatabase: "postgres"
   }
 
-  await createDb(databaseName, {
-    ...dbConfig,
-    defaultDatabase: "postgres", // defaults to "postgres"
-  })
   await migrate(dbConfig, "path/to/migration/files")
 }
 ```
@@ -49,7 +53,7 @@ async function() {
 Or, pass a `pg` client:
 
 ```typescript
-import {createDb, migrate} from "postgres-migrations"
+import {migrate} from "postgres-migrations"
 
 async function() {
   const dbConfig = {
@@ -60,27 +64,13 @@ async function() {
     port: 5432,
   }
 
-  {
-    const client = new pg.Client({
-      ...dbConfig,
-      database: "postgres",
-    })
-    await client.connect()
-    try {
-      await createDb(databaseName, {client})
-    } finally {
-      await client.end()
-    }
-  }
-
-  {
-    const client = new pg.Client(dbConfig) // or a Pool, or a PoolClient
-    await client.connect()
-    try {
-      await migrate({client}, "path/to/migration/files")
-    } finally {
-      await client.end()
-    }
+  // Note: when passing a client, it is assumed that the database already exists
+  const client = new pg.Client(dbConfig) // or a Pool, or a PoolClient
+  await client.connect()
+  try {
+    await migrate({client}, "path/to/migration/files")
+  } finally {
+    await client.end()
   }
 }
 ```
@@ -251,10 +241,10 @@ If you want sane date handling, it is recommended you use the following code sni
 ```js
 const pg = require("pg")
 
-const parseDate = val =>
+const parseDate = (val) =>
   val === null ? null : moment(val).format("YYYY-MM-DD")
 const DATATYPE_DATE = 1082
-pg.types.setTypeParser(DATATYPE_DATE, val => {
+pg.types.setTypeParser(DATATYPE_DATE, (val) => {
   return val === null ? null : parseDate(val)
 })
 ```

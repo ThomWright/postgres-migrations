@@ -2,7 +2,7 @@
 import test from "ava"
 import * as pg from "pg"
 import SQL from "sql-template-strings"
-import {createDb, migrate} from "../"
+import {createDb, migrate, MigrateDBConfig} from "../"
 import {PASSWORD, startPostgres, stopPostgres} from "./fixtures/docker-postgres"
 
 const CONTAINER_NAME = "pg-migrations-test-migrate"
@@ -384,7 +384,7 @@ test("bad arguments - incorrect port", (t) => {
     })
 })
 
-test("no database", (t) => {
+test("no database - ensureDatabaseExists = undefined", (t) => {
   return t
     .throwsAsync(
       migrate(
@@ -403,6 +403,65 @@ test("no database", (t) => {
         err.message,
         /database "migration-test-no-database" does not exist/,
       )
+    })
+})
+
+test("no database - ensureDatabaseExists = true", (t) => {
+  const databaseName = "migration-test-no-db-ensure-exists"
+  const dbConfig: MigrateDBConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+
+    ensureDatabaseExists: true,
+  }
+
+  return migrate(dbConfig, "src/__tests__/fixtures/ensure-exists")
+    .then(() => doesTableExist(dbConfig, "success"))
+    .then((exists) => {
+      t.truthy(exists)
+    })
+})
+
+test("existing database - ensureDatabaseExists = true", (t) => {
+  const databaseName = "migration-test-existing-db-ensure-exists"
+  const dbConfig: MigrateDBConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+
+    ensureDatabaseExists: true,
+  }
+
+  return createDb(databaseName, dbConfig)
+    .then(() => migrate(dbConfig, "src/__tests__/fixtures/ensure-exists"))
+    .then(() => doesTableExist(dbConfig, "success"))
+    .then((exists) => {
+      t.truthy(exists)
+    })
+})
+
+test("no database - ensureDatabaseExists = true, bad default database", (t) => {
+  const databaseName = "migration-test-ensure-exists-nope"
+  const dbConfig: MigrateDBConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+
+    ensureDatabaseExists: true,
+    defaultDatabase: "nopenopenope",
+  }
+
+  return t
+    .throwsAsync(migrate(dbConfig, "src/__tests__/fixtures/ensure-exists"))
+    .then((err) => {
+      t.regex(err.message, /database "nopenopenope" does not exist/)
     })
 })
 
