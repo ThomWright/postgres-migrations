@@ -42,7 +42,7 @@ async function() {
     ...dbConfig,
     defaultDatabase: "postgres", // defaults to "postgres"
   })
-  await migrate(dbConfig, "path/to/migration/files")
+  await migrate(dbConfig, "path/to/migration/files", { logger: console.log })
 }
 ```
 
