@@ -192,6 +192,7 @@ Example:
 ```text
 migrations
 ├ 1_create-initial-tables.sql
+├ 1_create-initial-tables.md # Docs can go here
 ├ 2-alter-initial-tables.SQL
 └ 3-alter-initial-tables-again.js
 ```
@@ -201,6 +202,7 @@ Or, if you want better ordering in your filesystem:
 ```text
 migrations
 ├ 00001_create-initial-tables.sql
+├ 00001_create-initial-tables.md # Docs can go here
 ├ 00002-alter-initial-tables.sql
 └ 00003_alter-initial-tables-again.js
 ```
