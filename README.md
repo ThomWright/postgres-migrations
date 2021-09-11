@@ -39,7 +39,7 @@ async function() {
 
     // Default: false for backwards-compatibility
     // This might change!
-    ensureDatabaseExists: true
+    ensureDatabaseExists: true,
 
     // Default: "postgres"
     // Used when checking/creating "database-name"
