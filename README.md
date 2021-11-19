@@ -238,6 +238,8 @@ ${createSecondaryTable}`
 
 ## Tips
 
+### Date handling
+
 If you want sane date handling, it is recommended you use the following code snippet to fix a `node-postgres` [bug](https://github.com/brianc/node-postgres/issues/818):
 
 ```js
@@ -249,6 +251,60 @@ const DATATYPE_DATE = 1082
 pg.types.setTypeParser(DATATYPE_DATE, (val) => {
   return val === null ? null : parseDate(val)
 })
+```
+
+### Schema migrations vs data migrations
+
+General rule: only change schemas and other static data in database migrations.
+
+When writing a migration which affects data, consider whether the migration needs to be run for all possible environments or just some specific environment. Schema changes and static data need changing for all environments. Often, data changes need to only happen in dev or prod (to fix some data), and might be better of run as one-off jobs (manually or otherwise).
+
+### Making a column NOT NULL
+
+```sql
+-- No no no nononono (at least for big tables)
+ALTER TABLE my_table ALTER COLUMN currently_nullable SET NOT NULL;
+```
+
+TL;DR don't do the above without [reading this](https://medium.com/doctolib/adding-a-not-null-constraint-on-pg-faster-with-minimal-locking-38b2c00c4d1c). It can be slow for big tables, and will lock out all writes to the table until it completes.
+
+### Creating indexes
+
+When creating indexes, there are a few important considerations.
+
+Creating an index should probably look like this:
+
+```sql
+-- postgres-migrations disable-transaction
+CREATE INDEX CONCURRENTLY IF NOT EXISTS name_of_idx
+  ON table_name (column_name);
+```
+
+- `CONCURRENTLY` - without this, writes on the table will block until the index has finished being created. However, it can't be run inside a transaction.
+- `-- postgres-migrations disable-transaction` - migrations are run inside a transaction by default. This disables that.
+- `IF NOT EXISTS` - since the transaction is disabled, it's possible to end up in a partially applied state where the index exists but the migration wasn't recorded. In this case, the migration will probably get run again. This ensures that will succeed.
+
+See the [Postgres docs on creating indexes](https://www.postgresql.org/docs/9.6/sql-createindex.html).
+
+### Avoid `IF NOT EXISTS`
+
+_Most_ of the time using `IF NOT EXISTS` is not necessary (see above for an exception). In most cases, we would be better off with a failing migration script that tells us that we tried to create a table with a duplicate name.
+
+### Use separate markdown files for complex documentation
+
+A comment that is added to a migration script can never be changed once the migration script has been deployed. For complex migration scripts, consider documenting them in a separate markdown file with the same file name as the migration script. This documentation can then be updated later if a better explanation becomes apparent.
+
+Your file structure might look something like this:
+
+```text
+- migrations
+  - 0001_complex_migration.md   <--- Contains documentation that can be updated.
+  - 0001_complex_migration.sql
+  - 0002_simple_migration.sql
+Rather than this:
+- migrations
+  - 0001_complex_migration.sql   <--- Contains documentation that can never be updated.
+  - 0002_simple_migration.sql
 ```
 
 ## Useful resources
