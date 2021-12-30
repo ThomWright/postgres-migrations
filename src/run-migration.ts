@@ -4,6 +4,13 @@ import {Logger, Migration, BasicPgClient} from "./types"
 const noop = () => {
   //
 }
+
+const split = async (migration: Migration, client: BasicPgClient) => {
+  const queries = migration.sql.split("-- split-query")
+
+  await Promise.all(queries.map(async (query: string) => client.query(query)))
+}
+
 const insertMigration = async (
   migrationTableName: string,
   client: BasicPgClient,
@@ -30,6 +37,9 @@ export const runMigration =
       migration.sql.includes("-- postgres-migrations disable-transaction") ===
       false
 
+    const splitQueries =
+      migration.sql.includes("-- postgres-migrations split-queries") === false
+
     log(`Running migration in transaction: ${inTransaction}`)
 
     const begin = inTransaction ? () => client.query("START TRANSACTION") : noop
@@ -38,9 +48,13 @@ export const runMigration =
 
     const cleanup = inTransaction ? () => client.query("ROLLBACK") : noop
 
+    const run = splitQueries
+      ? () => client.query(migration.sql)
+      : () => split(migration, client)
+
     try {
       await begin()
-      await client.query(migration.sql)
+      await run()
       await insertMigration(migrationTableName, client, migration, log)
       await end()
 

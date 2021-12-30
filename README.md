@@ -119,6 +119,24 @@ Running in a transaction ensures each migration is atomic. Either it completes s
 
 An exception is made when `-- postgres-migrations disable-transaction` is included at the top of the migration file. This allows migrations such as `CREATE INDEX CONCURRENTLY` which cannot be run inside a transaction.
 
+### Each migration is run as a multi-command string
+
+The entire migration file is run as a single command string no matter how many queries there are.
+
+An exception is made when `-- postgres-migrations split-queries` is commented at the top of the migration file. This allows migrations to include multiple query string blocks to be run separately. Each block of queries that start with the comment `-- split-query` will be run as its own command string.
+
+Example: adding values to enums can't be run multi-command strings so rather than adding a single migration per value added the following migration will run each alter statement separately.
+```
+-- postgres-migrations disable-transaction
+-- postgres-migrations split-queries
+
+-- split-query
+ALTER TYPE eggs ADD VALUE IF NOT EXISTS 'Fried';
+
+-- split-query
+ALTER TYPE eggs ADD VALUE IF NOT EXISTS 'Scrambled';
+```
+
 ### Abort on errors
 
 If anything fails, the migration in progress is rolled back and an exception is thrown.

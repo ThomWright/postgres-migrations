@@ -12,6 +12,7 @@ const readFile = promisify(fsReadFile)
 let normalSqlFile: string
 let normalJsFile: string
 let noTransactionSqlFile: string
+let splitQueriesSqlFile: string
 
 test.before(async () => {
   await Promise.all([
@@ -22,6 +23,12 @@ test.before(async () => {
     readFile(__dirname + "/fixtures/no-transaction.sql", "utf8").then(
       (contents) => {
         noTransactionSqlFile = contents
+      },
+    ),
+
+    readFile(__dirname + "/fixtures/split-queries.sql", "utf8").then(
+      (contents) => {
+        splitQueriesSqlFile = contents
       },
     ),
 
@@ -149,6 +156,39 @@ test("does not roll back when there is an error inside a transactiony migration"
     t.true(
       e.message.indexOf("There was a problem") >= 0,
       "should throw an error",
+    )
+  })
+})
+
+test("runs each query separately when instructed", (t) => {
+  const query = sinon.stub().resolves()
+  const run = runMigration(migrationTableName, {query})
+
+  const migration = buildMigration(splitQueriesSqlFile)
+  const splitQueries = migration.sql.split("-- split-query")
+
+  return run(migration).then(() => {
+    t.is(query.callCount, 4)
+    t.is(
+      query.firstCall.args[0],
+      splitQueries[0],
+      "could ignore the first entry (comments only)",
+    )
+    t.is(
+      query.secondCall.args[0],
+      splitQueries[1],
+      "should run the first migration",
+    )
+    t.is(
+      query.thirdCall.args[0],
+      splitQueries[2],
+      "should run the second migration",
+    )
+
+    t.deepEqual(
+      query.lastCall.args[0].values,
+      [migration.id, migration.name, migration.hash],
+      "should record the running of the migration in the database",
     )
   })
 })
