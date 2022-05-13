@@ -147,7 +147,7 @@ function runMigrations(intendedMigrations: Array<Migration>, log: Logger) {
       const error: MigrationError = new Error(
         `Migration failed. Reason: ${e.message}`,
       )
-      error.cause = e
+      error.reason = e
       throw error
     }
   }
