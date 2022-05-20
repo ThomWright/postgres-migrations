@@ -62,7 +62,7 @@ export interface FullConfig {
 }
 
 export class MigrationError extends Error {
-  public cause?: string
+  public cause?: Error
 }
 
 export type FileType = "sql" | "js"
