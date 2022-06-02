@@ -1,10 +1,26 @@
 # Postgres migrations
 
-![GitHub Actions](https://github.com/ThomWright/postgres-migrations/actions/workflows/node.js.yml/badge.svg)
-[![npm](https://img.shields.io/npm/v/postgres-migrations.svg)](https://www.npmjs.com/package/postgres-migrations)
-[![David](https://img.shields.io/david/ThomWright/postgres-migrations.svg)](https://david-dm.org/ThomWright/postgres-migrations)
-[![David](https://img.shields.io/david/dev/ThomWright/postgres-migrations.svg)](https://david-dm.org/ThomWright/postgres-migrations)
+This is fork from https://github.com/thomwright/postgres-migrations.
 
+## Kelp's
+
+We have added support for giving a schema name and the migrations table name also.
+
+We have also added cli for running migrations directly by reading inputs from environment or .env file from local directory.
+
+Here are the variables which we read.
+- DB_NAME
+- DB_USERNAME
+- DB_PASSWORD
+- DB_SERVER
+- DB_SCHEMA
+- DB_PORT (if missing we default it to 5432)
+
+The cli takes an argument for the folder with migration files. If no argument is provided we would use db_migrations folder.
+
+
+
+## concept
 A PostgreSQL migration library inspired by the Stack Overflow system described in [Nick Craver's blog](http://nickcraver.com/blog/2016/05/03/stack-overflow-how-we-do-deployment-2016-edition/#database-migrations).
 
 Migrations are defined in sequential SQL files, for example:

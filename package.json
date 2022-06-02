@@ -1,13 +1,14 @@
 {
-  "name": "postgres-migrations",
-  "version": "5.3.0",
+  "name": "@kelpglobal/postgres-migrations",
+  "version": "5.3.1",
   "description": "Stack Overflow style database migrations for PostgreSQL",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "pg-validate-migrations": "./dist/bin/validate.js"
+    "pg-validate-migrations": "./dist/bin/validate.js",
+    "pg-migrate": "./dist/bin/migrate.js"
   },
-  "author": "Thom Wright",
+  "author": "Srini Raju",
   "keywords": [
     "postgres",
     "postgresql",
@@ -17,14 +18,14 @@
     "database",
     "db"
   ],
-  "homepage": "https://github.com/thomwright/postgres-migrations#readme",
+  "homepage": "https://github.com/kelpglobal/postgres-migrations#readme",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git@github.com:thomwright/postgres-migrations.git"
+    "url": "git@github.com/kelpglobal/postgres-migrations.git"
   },
   "bugs": {
-    "url": "https://github.com/thomwright/postgres-migrations/issues"
+    "url": "https://github.com/kelpglobal/postgres-migrations/issues"
   },
   "engines": {
     "node": ">10.17.0"
@@ -50,10 +51,12 @@
     }
   },
   "dependencies": {
+    "dotenv": "^6.2.0",
     "pg": "^8.6.0",
     "sql-template-strings": "^2.2.2"
   },
   "devDependencies": {
+    "@types/dotenv": "^6.1.1",
     "@types/node": "^10.17.60",
     "@types/pg": "^8.6.0",
     "@types/sinon": "^9.0.11",
