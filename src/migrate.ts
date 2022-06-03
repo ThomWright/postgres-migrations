@@ -4,6 +4,7 @@ import {runCreateQuery} from "./create"
 import {loadMigrationFiles} from "./files-loader"
 import {hashString} from "./migration-file"
 import {runMigration} from "./run-migration"
+import {defaultMigrationsTableName, getFullTableName} from "./schema"
 import {
   BasicPgClient,
   Config,
@@ -47,21 +48,21 @@ export async function migrate(
     throw new Error("Must pass migrations directory as a string")
   }
 
-  const migrationsTable =
-    config.migrationsTable !== undefined ? config.migrationsTable : "migrations"
-  const migrationsFullTable =
-    config.schema !== undefined
-      ? `${config.schema}.${migrationsTable}`
-      : migrationsTable
-  const intendedMigrations = await loadMigrationFiles(migrationsDirectory, log)
-  const sql = intendedMigrations[0].sql.replace(
-    "migrations",
-    migrationsFullTable,
+  const migrationsFullTable = getFullTableName(
+    config.schema,
+    config.migrationsTable,
   )
-  intendedMigrations[0] = {
-    ...intendedMigrations[0],
-    sql,
-    hash: hashString(sql),
+  const intendedMigrations = await loadMigrationFiles(migrationsDirectory, log)
+  if (intendedMigrations.length > 0) {
+    const sql = intendedMigrations[0].sql.replace(
+      defaultMigrationsTableName,
+      migrationsFullTable,
+    )
+    intendedMigrations[0] = {
+      ...intendedMigrations[0],
+      sql,
+      hash: hashString(sql),
+    }
   }
   if ("client" in dbConfig) {
     // we have been given a client to use, it should already be connected

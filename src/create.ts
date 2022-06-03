@@ -1,9 +1,10 @@
 import * as pg from "pg"
+import {defaultSchemaName, isValidSchemaName} from "./schema"
 import {BasicPgClient, Config, CreateDBConfig, Logger} from "./types"
 import {withConnection} from "./with-connection"
 
 const DUPLICATE_DATABASE = "42P04"
-
+const DUPLICATE_SCHEMA = "42P07"
 /**
  * @deprecated Use `migrate` instead with `ensureDatabaseExists: true`.
  */
@@ -28,7 +29,7 @@ export async function createDb(
   }
 
   if ("client" in dbConfig) {
-    return runCreateQuery(dbName, log)(dbConfig.client)
+    return runCreateQuery(dbName, log, config.schema)(dbConfig.client)
   }
 
   if (
@@ -53,29 +54,42 @@ export async function createDb(
     log(`pg client emitted an error: ${err.message}`)
   })
 
-  const runWith = withConnection(log, runCreateQuery(dbName, log))
+  const runWith = withConnection(
+    log,
+    runCreateQuery(dbName, log, config.schema),
+  )
 
   return runWith(client)
 }
 
-export function runCreateQuery(dbName: string, log: Logger) {
+export function runCreateQuery(
+  dbName: string,
+  log: Logger,
+  schemaName?: string,
+) {
   return async (client: BasicPgClient): Promise<void> => {
-    await client
-      .query(`CREATE DATABASE "${dbName.replace(/\"/g, '""')}"`)
-      .catch((e) => {
-        switch (e.code) {
-          case DUPLICATE_DATABASE: {
-            log(`'${dbName}' database already exists`)
-            return
-          }
-
-          default: {
-            log(e)
-            throw new Error(
-              `Error creating database. Caused by: '${e.name}: ${e.message}'`,
-            )
-          }
+    try {
+      await client.query(`CREATE DATABASE "${dbName.replace(/\"/g, '""')}"`)
+      if (isValidSchemaName(schemaName) && schemaName !== defaultSchemaName) {
+        await client.query(`CREATE SCHEMA "${schemaName}"`)
+      }
+    } catch (e) {
+      switch (e.code) {
+        case DUPLICATE_DATABASE: {
+          log(`'${dbName}' database already exists`)
+          return
         }
-      })
+        case DUPLICATE_SCHEMA: {
+          log(`'${schemaName} schema already exists`)
+          return
+        }
+        default: {
+          log(e)
+          throw new Error(
+            `Error creating database. Caused by: '${e.name}: ${e.message}'`,
+          )
+        }
+      }
+    }
   }
 }

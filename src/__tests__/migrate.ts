@@ -208,7 +208,7 @@ test("successful first migration", (t) => {
     })
 })
 
-test("successful second migration", (t) => {
+test("successful second migration with schema name", (t) => {
   const databaseName = "migration-test-success-second"
   const dbConfig = {
     database: databaseName,
@@ -218,7 +218,7 @@ test("successful second migration", (t) => {
     port,
   }
 
-  return createDb(databaseName, dbConfig)
+  return createDb(databaseName, dbConfig, {schema: "test"})
     .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-first"))
     .then(() => migrate(dbConfig, "src/__tests__/fixtures/success-second"))
     .then(() => doesTableExist(dbConfig, "more_success"))
