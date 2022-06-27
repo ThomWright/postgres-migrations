@@ -38,6 +38,8 @@ export async function migrate(
           //
         }
 
+  const dryRun = config.dryRun === undefined ? false : config.dryRun
+
   if (dbConfig == null) {
     throw new Error("No config object")
   }
@@ -51,7 +53,7 @@ export async function migrate(
     // we have been given a client to use, it should already be connected
     return withAdvisoryLock(
       log,
-      runMigrations(intendedMigrations, log),
+      runMigrations(intendedMigrations, log, dryRun),
     )(dbConfig.client)
   }
 
@@ -99,15 +101,19 @@ export async function migrate(
 
     const runWith = withConnection(
       log,
-      withAdvisoryLock(log, runMigrations(intendedMigrations, log)),
+      withAdvisoryLock(log, runMigrations(intendedMigrations, log, dryRun)),
     )
 
     return runWith(client)
   }
 }
 
-function runMigrations(intendedMigrations: Array<Migration>, log: Logger) {
-  return async (client: BasicPgClient) => {
+function runMigrations(
+  intendedMigrations: Array<Migration>,
+  log: Logger,
+  dryRun: boolean,
+) {
+  return async (client: BasicPgClient): Promise<Array<Migration>> => {
     try {
       const migrationTableName = "migrations"
 
@@ -125,7 +131,12 @@ function runMigrations(intendedMigrations: Array<Migration>, log: Logger) {
         intendedMigrations,
         appliedMigrations,
       )
-      const completedMigrations = []
+      const completedMigrations: Array<Migration> = []
+
+      if (dryRun) {
+        logDryRun(migrationsToRun, log)
+        return completedMigrations
+      }
 
       for (const migration of migrationsToRun) {
         log(`Starting migration: ${migration.id} ${migration.name}`)
@@ -210,4 +221,19 @@ async function doesTableExist(client: BasicPgClient, tableName: string) {
 );`)
 
   return result.rows.length > 0 && result.rows[0].exists
+}
+
+function logDryRun(migrations: Array<Migration>, log: Logger) {
+  if (migrations.length === 0) {
+    log("\nNo new migrations to run\n")
+  } else {
+    const logString =
+      "\nMigrations to run:\n" +
+      migrations.map((m) => `  ${m.fileName}`).join("\n") +
+      "\n\n" +
+      migrations.map((m) => m.sql.trim()).join("\n\n") +
+      "\n"
+
+    log(logString)
+  }
 }
