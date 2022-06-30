@@ -1,5 +1,30 @@
 # Changelog
 
+## 5.3.2
+Added support for tenant filtering of files. If the file name has tenant name we would match it with TENANT_CODE environment variable to filter it.
+
+We need to set TENANT_CODE in environment(may be via .env)
+if the file name has for format like <SerialNumber>_<Description>.{sql/js} we would execute it without any checks.
+if the file name has for format like <SerialNumber>_<Description>.<TENANT_CODE>.{sql/js} we would compare it with  TENANT_CODE environment variable to filter it.
+
+## 5.3.1
+We have added support for giving a schema name and the migrations table name also.
+
+We have also added cli for running migrations directly by reading inputs from environment or .env file from local directory.
+
+Here are the variables which we read.
+- DB_NAME
+- DB_USERNAME
+- DB_PASSWORD
+- DB_SERVER
+- DB_SCHEMA
+-
+- DB_PORT (if missing we default it to 5432)
+
+The cli takes an argument for the folder with migration files. If no argument is provided we would use db_migrations folder.
+
+
+
 ## 5.3.0
 
 - [DEPRECATION] Deprecate `createDb`

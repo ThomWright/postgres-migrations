@@ -9,6 +9,14 @@ const readDir = promisify(fs.readdir)
 
 const isValidFile = (fileName: string) => /\.(sql|js)$/gi.test(fileName)
 
+const isValidForEnv = (fileName: string): boolean => {
+  const parts = fileName.split(".")
+  if (parts.length > 2) {
+    const tenantCode = parts[parts.length - 2]
+    return tenantCode === process.env.TENANT_CODE
+  }
+  return true
+}
 /**
  * Load the migration files and assert they are reasonably valid.
  *
@@ -24,18 +32,18 @@ export const loadMigrationFiles = async (
 ): Promise<Array<Migration>> => {
   log(`Loading migrations from: ${directory}`)
 
-  const fileNames = await readDir(directory)
+  let fileNames = await readDir(directory)
   log(`Found migration files: ${fileNames}`)
 
   if (fileNames == null) {
     return []
   }
+  fileNames = fileNames.filter(isValidForEnv)
 
   const migrationFiles = [
     path.join(__dirname, "migrations/0_create-migrations-table.sql"),
     ...fileNames.map((fileName) => path.resolve(directory, fileName)),
   ].filter(isValidFile)
-
   const unorderedMigrations = await Promise.all(
     migrationFiles.map(loadMigrationFile),
   )

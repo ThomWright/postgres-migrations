@@ -49,8 +49,8 @@ export async function migrate(
   }
 
   const migrationsFullTable = getFullTableName(
-    config.schema,
     config.migrationsTable,
+    config.schema,
   )
   const intendedMigrations = await loadMigrationFiles(migrationsDirectory, log)
   if (intendedMigrations.length > 0) {

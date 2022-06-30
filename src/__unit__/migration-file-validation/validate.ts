@@ -13,3 +13,16 @@ test("two migrations with the same id", async (t) => {
   )
   t.regex(error.message, /non-consecutive/)
 })
+
+test("filter  migrations based on env name as test", async (t) => {
+  process.env.TENANT_CODE = "test"
+  let result = await loadMigrationFiles(
+    "src/__unit__/migration-file-validation/fixtures/envname",
+  )
+  t.is(result.length, 3)
+  process.env.TENANT_CODE = "test2"
+  result = await loadMigrationFiles(
+    "src/__unit__/migration-file-validation/fixtures/envname",
+  )
+  t.is(result.length, 2)
+})

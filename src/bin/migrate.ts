@@ -28,6 +28,10 @@ async function main(args: Array<string>) {
     console.log("DB_SCHEMA is not set in environment")
     process.exit(1)
   }
+  if (typeof process.env.TENANT_CODE !== "string") {
+    console.log("TENANT_CODE is not set in environment")
+    process.exit(1)
+  }
   const port =
     typeof process.env.DB_PORT === "string"
       ? parseInt(process.env.DB_PORT, 10)

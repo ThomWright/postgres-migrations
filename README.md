@@ -2,7 +2,7 @@
 
 This is fork from https://github.com/thomwright/postgres-migrations.
 
-## Kelp's
+## Kelp's change
 
 We have added support for giving a schema name and the migrations table name also.
 
@@ -14,11 +14,13 @@ Here are the variables which we read.
 - DB_PASSWORD
 - DB_SERVER
 - DB_SCHEMA
+- TENANT_CODE
 - DB_PORT (if missing we default it to 5432)
 
 The cli takes an argument for the folder with migration files. If no argument is provided we would use db_migrations folder.
 
-
+If the file name has for format like <SerialNumber>_<Description>.{sql/js} we would execute it without any checks.
+if the file name has for format like <SerialNumber>_<Description>.<TENANT_CODE>.{sql/js} we would compare it with  TENANT_CODE environment variable to filter it.
 
 ## concept
 A PostgreSQL migration library inspired by the Stack Overflow system described in [Nick Craver's blog](http://nickcraver.com/blog/2016/05/03/stack-overflow-how-we-do-deployment-2016-edition/#database-migrations).
