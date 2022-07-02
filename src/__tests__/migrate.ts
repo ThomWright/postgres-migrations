@@ -4,6 +4,8 @@ import * as pg from "pg"
 import SQL from "sql-template-strings"
 import {createDb, migrate, MigrateDBConfig} from "../"
 import {PASSWORD, startPostgres, stopPostgres} from "./fixtures/docker-postgres"
+import * as sinon from "sinon"
+import {SinonSpy} from "sinon"
 
 const CONTAINER_NAME = "pg-migrations-test-migrate"
 
@@ -281,6 +283,119 @@ test("successful complex js migration", (t) => {
     .then(() => doesTableExist(dbConfig, "complex"))
     .then((exists) => {
       t.truthy(exists)
+    })
+})
+
+test("with dryRun true", (t) => {
+  const logSpy = sinon.spy()
+  const databaseName = "migration-with-dryRun-true-test"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  const expectedLog = `
+Migrations to run:
+  1_dry_run_true_first.sql
+  2_dry_run_true_second.js
+
+CREATE TABLE dry_run_true (
+  id integer
+);
+
+ALTER TABLE dry_run_true
+  ADD new_column integer;
+`
+
+  return createDb(databaseName, dbConfig)
+    .then(() => migrate(dbConfig, "src/__tests__/fixtures/empty"))
+    .then(() =>
+      migrate(dbConfig, "src/__tests__/fixtures/dry-run-true", {
+        dryRun: true,
+        logger: logSpy,
+      }),
+    )
+    .then(() => doesTableExist(dbConfig, "dry_run_true"))
+    .then((exists) => {
+      t.falsy(exists)
+      t.assert(
+        logSpy.calledWith(expectedLog),
+        `expected logger to have been called with ${expectedLog} but was called with ${allArgsForCalls(
+          logSpy,
+        )}`,
+      )
+    })
+})
+
+test("with dryRun true but no migrations to run", (t) => {
+  const logSpy = sinon.spy()
+  const databaseName = "migration-with-dryRun-no-migrations-test"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  const expectedLog = "\nNo new migrations to run\n"
+
+  return createDb(databaseName, dbConfig)
+    .then(() =>
+      migrate(dbConfig, "src/__tests__/fixtures/dry-run-no-migrations"),
+    )
+    .then(() => doesTableExist(dbConfig, "dry_run_no_migrations"))
+    .then((exists) => {
+      t.truthy(exists)
+    })
+    .then(() =>
+      migrate(dbConfig, "src/__tests__/fixtures/dry-run-no-migrations", {
+        dryRun: true,
+        logger: logSpy,
+      }),
+    )
+    .then(() => {
+      t.assert(
+        logSpy.calledWith(expectedLog),
+        `expected logger to have been called with ${expectedLog} but was called with ${allArgsForCalls(
+          logSpy,
+        )}`,
+      )
+    })
+})
+
+test("with dryRun false", (t) => {
+  const logSpy = sinon.spy()
+  const databaseName = "migration-with-dryRun-false-test"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  const unexpectedLog = "CREATE TABLE dry_run_false"
+
+  return createDb(databaseName, dbConfig)
+    .then(() =>
+      migrate(dbConfig, "src/__tests__/fixtures/dry-run-false", {
+        dryRun: false,
+        logger: logSpy,
+      }),
+    )
+    .then(() => doesTableExist(dbConfig, "dry_run_false"))
+    .then((exists) => {
+      t.truthy(exists)
+      t.assert(
+        logSpy.neverCalledWithMatch(unexpectedLog),
+        `expected logger not to be called with string matching ${unexpectedLog} but was called with ${allArgsForCalls(
+          logSpy,
+        )}`,
+      )
     })
 })
 
@@ -719,4 +834,11 @@ function doesTableExist(dbConfig: pg.ClientConfig, tableName: string) {
         return result.rows.length > 0 && result.rows[0].exists
       }
     })
+}
+
+function allArgsForCalls(spy: SinonSpy) {
+  return spy
+    .getCalls()
+    .map((call) => call.args)
+    .join(" | ")
 }

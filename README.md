@@ -75,6 +75,32 @@ async function() {
 }
 ```
 
+### Config
+
+#### `logger`
+
+This will be used for all logging from `postgres-migrations`. The function will be called passing a
+string argument with each call.
+
+#### `dryRun`
+
+Setting `dryRun` to `true` will log the filenames and SQL of all transactions to be run, without running them. It validates that the file names are the appropriate format, but it does not perform any validation of the migrations themselves so they may still fail after running.
+
+The logs look like this:
+
+```
+Migrations to run:
+  1_first_migration.sql
+  2_second_migration.js
+
+CREATE TABLE first_migration_table (
+  id integer
+);
+
+ALTER TABLE first_migration_table
+  ADD second_migration_column integer;
+```
+
 ### Validating migration files
 
 Occasionally, if two people are working on the same codebase independently, they might both create a migration at the same time. For example, `5_add-table.sql` and `5_add-column.sql`. If these both get pushed, there will be a conflict.
