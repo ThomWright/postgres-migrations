@@ -75,6 +75,35 @@ test("concurrent migrations - index concurrently", async (t) => {
   t.truthy(exists)
 })
 
+test("multiple schemas", async (t) => {
+  const databaseName = "migration-test-multiple-schemas"
+  const dbConfig = {
+    database: databaseName,
+    user: "postgres",
+    password: PASSWORD,
+    host: "localhost",
+    port,
+  }
+
+  await createDb(databaseName, dbConfig)
+  const client = new pg.Client(dbConfig)
+  await client.connect()
+
+  await createSchema(client, "schema_1")
+  await useSchema(client, "schema_1")
+  await migrate({client}, "src/__tests__/fixtures/multiple-schemas")
+  const firstMigrationSucceeded = await doesTableExist(dbConfig, "success")
+  t.truthy(firstMigrationSucceeded)
+
+  await createSchema(client, "schema_2")
+  await useSchema(client, "schema_2")
+  await migrate({client}, "src/__tests__/fixtures/multiple-schemas-2")
+  const secondMigrationSucceeded = await doesTableExist(dbConfig, "another")
+  t.truthy(secondMigrationSucceeded)
+
+  await client.end()
+})
+
 // can't test with unconnected client because `pg` just hangs on the first query...
 test("with connected client", async (t) => {
   const databaseName = "migration-test-with-connected-client"
@@ -719,4 +748,15 @@ function doesTableExist(dbConfig: pg.ClientConfig, tableName: string) {
         return result.rows.length > 0 && result.rows[0].exists
       }
     })
+}
+
+async function createSchema(
+  client: pg.Client,
+  schemaName: string,
+): Promise<void> {
+  await client.query(`CREATE SCHEMA ${schemaName};`)
+}
+
+async function useSchema(client: pg.Client, schemaName: string): Promise<void> {
+  await client.query(`SET search_path TO ${schemaName};`)
 }
