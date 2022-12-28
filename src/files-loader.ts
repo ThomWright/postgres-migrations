@@ -21,6 +21,7 @@ export const loadMigrationFiles = async (
   directory: string,
   // tslint:disable-next-line no-empty
   log: Logger = () => {},
+  skipCreateMigrationTable: boolean = false,
 ): Promise<Array<Migration>> => {
   log(`Loading migrations from: ${directory}`)
 
@@ -31,8 +32,16 @@ export const loadMigrationFiles = async (
     return []
   }
 
-  const migrationFiles = [
-    path.join(__dirname, "migrations/0_create-migrations-table.sql"),
+  let migrationFiles = []
+
+  if (!skipCreateMigrationTable) {
+    migrationFiles.push(
+      path.join(__dirname, "migrations/0_create-migrations-table.sql"),
+    )
+  }
+
+  migrationFiles = [
+    ...migrationFiles,
     ...fileNames.map((fileName) => path.resolve(directory, fileName)),
   ].filter(isValidFile)
 

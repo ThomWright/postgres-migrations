@@ -45,7 +45,7 @@ export async function migrate(
   if (typeof migrationsDirectory !== "string") {
     throw new Error("Must pass migrations directory as a string")
   }
-  const intendedMigrations = await loadMigrationFiles(migrationsDirectory, log)
+  const intendedMigrations = await loadMigrationFiles(migrationsDirectory, log, config.skipCreateMigrationTable)
 
   if ("client" in dbConfig) {
     // we have been given a client to use, it should already be connected
