@@ -1,4 +1,6 @@
-node_modules
 *.log
-test-reports
+**/.env*
+!**/.env.example
 dist/
+node_modules
+test-reports
