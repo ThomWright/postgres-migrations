@@ -14,6 +14,22 @@
 
 
 
+# [5.4.0](https://github.com/thomwright/postgres-migrations/compare/v5.3.0...v5.4.0) (2023-01-18)
+
+
+### Bug Fixes
+
+* makefile ([321d8cb](https://github.com/thomwright/postgres-migrations/commit/321d8cb75b202313d0729e10672a07564c03b1ac))
+
+
+### Features
+
+* add environment variable ([930b07c](https://github.com/thomwright/postgres-migrations/commit/930b07c736aafaf25985536480a96026b8118207))
+* add makefile for shipjs ([af0743b](https://github.com/thomwright/postgres-migrations/commit/af0743bbeb20170e7d317543a2dbe4b41d87fcf3))
+* add migration based on schema ([7155129](https://github.com/thomwright/postgres-migrations/commit/71551299b4692c2beaa9d62f82b60c377cc2071d))
+
+
+
 # Changelog
 
 ## 5.3.0
