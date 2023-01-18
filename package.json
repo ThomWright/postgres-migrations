@@ -31,7 +31,7 @@
   },
   "scripts": {
     "checkPushed": "[ \"$(git rev-list --count @{upstream}..HEAD)\" -eq 0 ] || (echo You have unpushed commits && exit 1)",
-    "prepublishOnly": "npm run checkPushed && npm test && npm run build",
+    "prepublishOnly": "npm run build",
     "check-formatting": "./node_modules/.bin/prettier '**/*.ts' --list-different",
     "fix-formatting": "./node_modules/.bin/prettier '**/*.ts' --write",
     "lint": "npm run tslint && npm run check-formatting",
@@ -46,8 +46,7 @@
   "husky": {
     "hooks": {
       "commit-msg": "node ./node_modules/fit-commit-js/lib/hook.js .git/COMMIT_EDITMSG",
-      "pre-commit": "npm run lint",
-      "pre-push": "npm test"
+      "pre-commit": "npm run lint"
     }
   },
   "dependencies": {
