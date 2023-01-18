@@ -1,6 +1,6 @@
 {
   "name": "@dzangolab/postgres-migrations",
-  "version": "5.3.0",
+  "version": "5.4.0",
   "description": "Stack Overflow style database migrations for PostgreSQL",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
