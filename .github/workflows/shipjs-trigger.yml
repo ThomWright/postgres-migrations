@@ -9,19 +9,17 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'releases/v')
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: master
-      - uses: actions/setup-node@v1
+          ref: main
+      - name: Setup node 16
+        uses: actions/setup-node@v3
         with:
+          node-version: 16
           registry-url: "https://registry.npmjs.org"
-      - run: |
-          if [ -f "yarn.lock" ]; then
-            yarn install
-          else
-            npm install
-          fi
+      - run:  npm install
       - run: npx shipjs trigger
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
