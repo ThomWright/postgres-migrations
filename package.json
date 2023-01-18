@@ -40,7 +40,8 @@
     "test-unit": "ava --config ava.config.unit.cjs",
     "test": "npm run test-unit && npm run lint && npm run test-integration",
     "preversion": "npm test",
-    "build": "rm -rf ./dist && rsync -a --exclude='*.ts' --exclude='__tests__' --exclude='__unit__' --prune-empty-dirs src/ dist/ && tsc --project tsconfig-build.json"
+    "build": "rm -rf ./dist && rsync -a --exclude='*.ts' --exclude='__tests__' --exclude='__unit__' --prune-empty-dirs src/ dist/ && tsc --project tsconfig-build.json",
+    "release": "shipjs prepare"
   },
   "husky": {
     "hooks": {
@@ -61,6 +62,7 @@
     "fit-commit-js": "^0.3.2",
     "husky": "^3.1.0",
     "prettier": "^2.3.1",
+    "shipjs": "0.25.1",
     "sinon": "^9.2.4",
     "ts-node": "^10.0.0",
     "tslint": "^6.1.3",
