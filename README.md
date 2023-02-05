@@ -307,6 +307,19 @@ Rather than this:
   - 0002_simple_migration.sql
 ```
 
+### Bundling postgres-migrations
+
+If you are bundling this package with for example Vite/Rollup, you might get the error `ReferenceError: __dirname is not defined` when trying to run migrations.
+
+To work around this, you need to:
+
+1. Download the initial migration from [this link](https://github.com/ThomWright/postgres-migrations/blob/master/src/migrations/0_create-migrations-table.sql) and put it in *your* migrations folder.
+2. Make sure the name of the file is exactly the same as the original: `0_create-migrations-table.sql`
+
+The library will then detect the presence of the file and skip including the original file using `__dirname`. To make sure you copied the file correctly, verify that the `hash` for the `create-migrations-table` migration in the `migrations` table is `e18db593bcde2aca2a408c4d1100f6abba2195df`.
+
+See [this issue](https://github.com/ThomWright/postgres-migrations/issues/79) for additional details.
+
 ## Useful resources
 
 [Stack Overflow: How We Do Deployment - 2016 Edition (Database Migrations)](http://nickcraver.com/blog/2016/05/03/stack-overflow-how-we-do-deployment-2016-edition/#database-migrations)

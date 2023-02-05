@@ -32,9 +32,16 @@ export const loadMigrationFiles = async (
   }
 
   const migrationFiles = [
-    path.join(__dirname, "migrations/0_create-migrations-table.sql"),
     ...fileNames.map((fileName) => path.resolve(directory, fileName)),
   ].filter(isValidFile)
+
+  // Add the initial migration if the user hasn't added it to their migrations/ folder themselves
+  // This works around issues with bundling this library due to usage of __dirname
+  if (!fileNames.includes("0_create-migrations-table.sql")) {
+    migrationFiles.push(
+      path.join(__dirname, "migrations/0_create-migrations-table.sql"),
+    )
+  }
 
   const unorderedMigrations = await Promise.all(
     migrationFiles.map(loadMigrationFile),
