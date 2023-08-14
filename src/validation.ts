@@ -28,7 +28,9 @@ export function validateMigrationHashes(
   if (invalidHashes.length > 0) {
     // Someone has altered one or more migrations which has already run - gasp!
     const errors = invalidHashes
-      .map(migration => `Migration failed for File: ${migration.fileName}. This means that this script has changed since it was applied.\n\tExpected Hash: ${appliedMigrations[migration.id].hash}\n\tActual Hash: ${migration.hash}`)
+      .map(migration => `Migration failed for File: ${migration.fileName}.`
+        + 'This means that this script has changed since it was applied.\n\t'
+        + `Expected Hash: ${appliedMigrations[migration.id].hash}\n\tActual Hash: ${migration.hash}`)
       .join('\n');
     throw new Error(errors);
   }
